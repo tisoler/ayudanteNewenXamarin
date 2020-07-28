@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AyudanteNewen.Vistas.ProductoMovimientos"
+			 Title="Ayudante Newen">
+
+    <ContentPage.Content>
+        <StackLayout Spacing="0" Padding="0" BackgroundColor="#EDEDED">
+            <StackLayout Spacing="0" Padding="0" Orientation="Horizontal">
+                <Image x:Name="SombraEncabezado" HorizontalOptions="FillAndExpand" Aspect="AspectFill"></Image>
+            </StackLayout>
+			<StackLayout BackgroundColor="#C0C0C0" VerticalOptions="Start" HorizontalOptions="Fill">
+				<Label x:Name="Titulo" FontSize="18" FontAttributes="Bold" TextColor="Black" HorizontalOptions="Center" HeightRequest="30">Movimientos de</Label>
+        </StackLayout>
+			<StackLayout x:Name="ContenedorMovimientos" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0">
+			</StackLayout>
+			<StackLayout x:Name="ContenedorBotones" Spacing="0" Padding="0" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End">
+			</StackLayout>
+        </StackLayout>
+    </ContentPage.Content>
+
+</ContentPage>

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AyudanteNewen.Vistas.SeleccionColumnasParaVer"
+			 Title="Ayudante Newen">
+
+    <ContentPage.Content>
+        <StackLayout Spacing="0" Padding="0" BackgroundColor="#EDEDED">
+            <StackLayout Spacing="0" Padding="0" Orientation="Horizontal">
+                <Image x:Name="SombraEncabezado" HorizontalOptions="FillAndExpand" Aspect="AspectFill"></Image>
+            </StackLayout>
+			<StackLayout BackgroundColor="#C0C0C0" VerticalOptions="Start" HorizontalOptions="Fill">
+				<Label FontSize="18" FontAttributes="Bold" TextColor="Black" HorizontalOptions="Center" HeightRequest="30">Seleccione columnas para ver</Label>
+        </StackLayout>
+        <ScrollView VerticalOptions="FillAndExpand" HorizontalOptions="Center">
+				<StackLayout x:Name="ContenedorColumnas" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0">
+        </StackLayout>
+        </ScrollView>
+			<StackLayout x:Name="ContenedorBotones" Spacing="0" Padding="0" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End">
+			</StackLayout>
+    </StackLayout>
+  </ContentPage.Content>
+
+</ContentPage>

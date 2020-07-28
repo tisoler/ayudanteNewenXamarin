@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto" android:versionName="1.6.3" package="com.ayudante.newen" android:versionCode="16">
+	<uses-sdk android:minSdkVersion="21" android:targetSdkVersion="29" />
+	<application android:label="Ayudante Newen" android:icon="@drawable/icon"></application>
+	<uses-permission android:name="android.permission.CAMERA" />
+</manifest>

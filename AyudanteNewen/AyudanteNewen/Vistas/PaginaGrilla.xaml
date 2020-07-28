@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AyudanteNewen.Vistas.PaginaGrilla"
+			 NavigationPage.HasNavigationBar="False">
+
+	<ContentPage.Content>
+		<StackLayout Spacing="0" Padding="0" BackgroundColor="#EDEDED">
+			<StackLayout x:Name="GrupoEncabezado" Spacing="0" Padding="0">
+                <StackLayout x:Name="Cabecera" BackgroundColor="#FB9F0B" HeightRequest="60" Spacing="0" Padding="0" Orientation="Horizontal">
+                    <Label FontSize="20" Text="Ayudante Newen" Margin="10" TextColor="White" FontAttributes="Bold" VerticalOptions="Center"/>
+				</StackLayout>
+				<StackLayout Spacing="0" Padding="0" Orientation="Horizontal">
+					<Image x:Name="SombraEncabezado" HorizontalOptions="FillAndExpand" Aspect="AspectFill"></Image>
+				</StackLayout>
+			</StackLayout>
+			<StackLayout VerticalOptions="Start" HorizontalOptions="Fill" Spacing="0" Padding="0">
+				<SearchBar x:Name="Buscador" IsVisible="False" BackgroundColor="#EDEDED" HorizontalOptions="Fill" TextChanged="FiltrarProductos" SearchButtonPressed="FiltrarProductos" />
+			</StackLayout>
+			<StackLayout x:Name="ContenedorTabla" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0">
+			</StackLayout>
+			<StackLayout x:Name="ContenedorBotones" Spacing="0" Padding="0" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End">
+			</StackLayout>
+    </StackLayout>
+  </ContentPage.Content>
+  
+</ContentPage>

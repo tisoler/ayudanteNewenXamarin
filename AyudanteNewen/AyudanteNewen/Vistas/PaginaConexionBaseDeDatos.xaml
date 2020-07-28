@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AyudanteNewen.Vistas.PaginaConexionBaseDeDatos"
+			 Title="Ayudante Newen">
+
+    <ContentPage.Content>
+        <StackLayout Spacing="0" Padding="0" BackgroundColor="#EDEDED">
+            <StackLayout Spacing="0" Padding="0" Orientation="Horizontal">
+                <Image x:Name="SombraEncabezado" HorizontalOptions="FillAndExpand" Aspect="AspectFill"></Image>
+            </StackLayout>
+			<StackLayout BackgroundColor="#C0C0C0" VerticalOptions="Start" HorizontalOptions="Fill">
+				<Label FontSize="18" FontAttributes="Bold" TextColor="Black" HorizontalOptions="Center" HeightRequest="30">Ingrese usuario y contraseña</Label>
+			</StackLayout>
+			<StackLayout Spacing="25" Padding="0" VerticalOptions="CenterAndExpand">
+				<StackLayout Orientation="Horizontal" VerticalOptions="EndAndExpand" Spacing="10" Padding="0">
+					<Label FontSize="18" Text="Usuario" HorizontalTextAlignment="End" HorizontalOptions="EndAndExpand" WidthRequest="100" VerticalOptions="Center"/>
+					<Entry FontSize="18" x:Name="Usuario" HorizontalOptions="StartAndExpand" WidthRequest="160" VerticalOptions="Center"/>
+				</StackLayout>
+				<StackLayout Orientation="Horizontal" VerticalOptions="StartAndExpand" Spacing="10" Padding="0">
+					<Label FontSize="18" Text="Contraseña" HorizontalTextAlignment="End" HorizontalOptions="EndAndExpand" WidthRequest="100" VerticalOptions="Center"/>
+					<Entry FontSize="18" x:Name="Contrasena" HorizontalOptions="StartAndExpand" WidthRequest="160" VerticalOptions="Center" IsPassword="True"/>
+				</StackLayout>
+			</StackLayout>
+			<StackLayout BackgroundColor="#D21721" Spacing="0" Padding="0" Orientation="Horizontal" VerticalOptions="End" HorizontalOptions="Fill">
+				<Button HorizontalOptions="FillAndExpand" VerticalOptions="Center" Text="Conectar" HeightRequest="60" Clicked="Conectar"/>
+			</StackLayout>
+		</StackLayout>
+	</ContentPage.Content>
+
+</ContentPage>
