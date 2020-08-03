@@ -9,7 +9,7 @@ namespace AyudanteNewen
 {
 	public partial class PaginaAuntenticacion
 	{
-		private readonly string _clientId = "209664019803-t7i8ejmj640m136bqp3snkn8gil54s6d.apps.googleusercontent.com";
+		private readonly string _clientId = "898150154619-oijkkc2eqo5lun5qbr2nvv7vo58gn4rs.apps.googleusercontent.com";
 		private readonly bool _conexionExistente;
 
 		public PaginaAuntenticacion(bool conexionExistente = false)
@@ -17,7 +17,8 @@ namespace AyudanteNewen
 			InitializeComponent();
 			SombraEncabezado.Source = ImageSource.FromResource(App.RutaImagenSombraEncabezado);
 			CuentaUsuario.AlmacenarAccesoDatos("G");
-			_conexionExistente = conexionExistente; //Si es verdadero debe llevarnos a la Grilla en lugar de avanzar hacia la página de selección de libros
+			// Si es verdadero debe llevarnos a la Grilla en lugar de avanzar hacia la página de selección de libros
+			_conexionExistente = conexionExistente;
 
 			var webView = new WebView
 			{
