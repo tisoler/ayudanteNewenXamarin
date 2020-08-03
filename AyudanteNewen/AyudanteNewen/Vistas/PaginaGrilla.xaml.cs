@@ -263,7 +263,7 @@ namespace AyudanteNewen.Vistas
 			{
 				var productoSeleccionado = new CellEntry[_celdas.ColCount.Count];
 
-				//Obtener el arreglo del producto para enviar
+				// Obtener el arreglo del producto para enviar
 				foreach (CellEntry celda in _celdas.Entries)
 				{
 					if (celda.Column == 1 && celda.Value == codigoProductoSeleccionado)
@@ -271,7 +271,7 @@ namespace AyudanteNewen.Vistas
 					if (celda.Row == fila)
 						productoSeleccionado.SetValue(celda, (int)celda.Column - 1);
 
-					//Si encontró producto (fila > -1) y ya pasó alpróximo producto (celda.Row > fila) o es el último producto (celda.Column == _celdas.ColCount.Count)
+					// Si encontró producto (fila > -1) y ya pasó alpróximo producto (celda.Row > fila) o es el último producto (celda.Column == _celdas.ColCount.Count)
 					if (fila > -1 && (celda.Row > fila || celda.Column == _celdas.ColCount.Count))
 					{
 						var titulo = _nombresColumnas != null && _nombresColumnas.Length > 1 ? _nombresColumnas[1] : "PRODUCTO";
@@ -290,7 +290,7 @@ namespace AyudanteNewen.Vistas
 					break;
 				}
 			}
-			//Si fila = -1 no se ha encuentrado el código
+			// Si fila = -1 no se ha encuentrado el código
 			if (fila == -1)
 				await DisplayAlert("Código", "No se ha encontrado un producto para el código escaneado.", "Listo");
 
