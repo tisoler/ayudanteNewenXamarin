@@ -85,7 +85,7 @@ namespace AyudanteNewen.Vistas
 		{
 			foreach (var datosHoja in _listaHojas)
 			{
-				if (!datosHoja.Title.Text.Contains("Costos variables")) continue;
+				if (!datosHoja.Title.Text.Equals("Costos variables App")) continue;
 
 				var linkHojaRelacionesInsumoProducto = datosHoja.Links.FindService(GDataSpreadsheetsNameTable.CellRel, null).HRef.ToString();
 				CuentaUsuario.AlmacenarLinkHojaRelacionesInsumoProducto(linkHoja, linkHojaRelacionesInsumoProducto);

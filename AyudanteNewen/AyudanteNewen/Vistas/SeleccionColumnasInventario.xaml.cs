@@ -29,8 +29,12 @@ namespace AyudanteNewen.Vistas
 		private void ConfigurarBotones()
 		{
 			_listo = App.Instancia.ObtenerImagen(TipoImagen.BotonListo);
-			_listo.GestureRecognizers.Add(new TapGestureRecognizer(Listo));
-
+			_listo.GestureRecognizers.Add(new TapGestureRecognizer
+				{
+					Command = new Command(Listo),
+					NumberOfTapsRequired = 1
+				}
+			);
 			ContenedorBotones.Children.Add(_listo);
 		}
 
@@ -85,7 +89,7 @@ namespace AyudanteNewen.Vistas
 		}
 
 		[Android.Runtime.Preserve]
-		private void Listo(View arg1, object arg2)
+		private void Listo()
 		{
 			_listo.Opacity = 0.5f;
 			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>

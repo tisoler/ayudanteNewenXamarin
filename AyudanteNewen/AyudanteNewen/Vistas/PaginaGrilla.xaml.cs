@@ -22,7 +22,6 @@ namespace AyudanteNewen.Vistas
 		private string _linkHojaConsulta;
 		private string[] _nombresColumnas;
 		private string[] _listaColumnasParaVer;
-		private string[] _listaColumnasInventario;
 		private ViewCell _ultimoItemSeleccionado;
 		private Color _ultimoColorSeleccionado;
 		private List<string[]> _productos;
@@ -220,10 +219,6 @@ namespace AyudanteNewen.Vistas
 			if (!string.IsNullOrEmpty(columnasParaVer))
 				_listaColumnasParaVer = columnasParaVer.Split(',');
 
-			var columnasInventario = CuentaUsuario.ObtenerColumnasInventario();
-			if (!string.IsNullOrEmpty(columnasInventario))
-				_listaColumnasInventario = columnasInventario.Split(',');
-
 			_indicadorActividad = new ActivityIndicator
 			{
 				VerticalOptions = LayoutOptions.CenterAndExpand,
@@ -237,11 +232,26 @@ namespace AyudanteNewen.Vistas
 		private void ConfigurarBotones()
 		{
 			_accesoDatos = App.Instancia.ObtenerImagen(TipoImagen.BotonAccesoDatos);
-			_accesoDatos.GestureRecognizers.Add(new TapGestureRecognizer(AccederDatos));
+			_accesoDatos.GestureRecognizers.Add(new TapGestureRecognizer
+				{
+					Command = new Command(AccederDatos),
+					NumberOfTapsRequired = 1
+				}
+			);
 			_refrescar = App.Instancia.ObtenerImagen(TipoImagen.BotonRefrescarDatos);
-			_refrescar.GestureRecognizers.Add(new TapGestureRecognizer(RefrescarDatos));
+			_refrescar.GestureRecognizers.Add(new TapGestureRecognizer
+				{
+					Command = new Command(RefrescarDatos),
+					NumberOfTapsRequired = 1
+				}
+			);
 			_escanearCodigo = App.Instancia.ObtenerImagen(TipoImagen.BotonEscanearCodigo);
-			_escanearCodigo.GestureRecognizers.Add(new TapGestureRecognizer(AbrirPaginaEscaner));
+			_escanearCodigo.GestureRecognizers.Add(new TapGestureRecognizer
+				{
+					Command = new Command(AbrirPaginaEscaner),
+					NumberOfTapsRequired = 1
+				}
+			);
 
 			ContenedorBotones.Children.Add(_accesoDatos);
 			ContenedorBotones.Children.Add(_refrescar);
@@ -259,6 +269,7 @@ namespace AyudanteNewen.Vistas
 		private async void IrAlProducto(string codigoProductoSeleccionado)
 		{
 			var fila = -1;
+			GrupoEncabezado.IsVisible = false;
 			if (CuentaUsuario.ObtenerAccesoDatos() == "G")
 			{
 				var productoSeleccionado = new CellEntry[_celdas.ColCount.Count];
@@ -290,6 +301,7 @@ namespace AyudanteNewen.Vistas
 					break;
 				}
 			}
+			GrupoEncabezado.IsVisible = true;
 			// Si fila = -1 no se ha encuentrado el código
 			if (fila == -1)
 				await DisplayAlert("Código", "No se ha encontrado un producto para el código escaneado.", "Listo");
@@ -310,10 +322,7 @@ namespace AyudanteNewen.Vistas
 
 					if (_listaColumnasParaVer != null && _listaColumnasParaVer[i] == "1")
 					{
-						if (_listaColumnasInventario[i] == "1")
-							textoDato += _nombresColumnas[i] + " : ";
-
-						textoDato += dato;
+						textoDato += _nombresColumnas[i] + " : " + dato + '\n';
 						datosParaVer.Add(textoDato);
 					}
 					i += 1;
@@ -324,7 +333,8 @@ namespace AyudanteNewen.Vistas
 				esTeclaPar = !esTeclaPar;
 			}
 
-			var anchoColumnaNombreProd = CuentaUsuario.ObtenerAccesoDatos() == "G" ? 120 : 200;
+			var anchoColumnaNombreProd = App.AnchoRetratoDePantalla * 0.55;
+			var anchoColumnaDatosProd = App.AnchoRetratoDePantalla - (anchoColumnaNombreProd + 2); // 2 por el ancho del divisor
 
 			var titulo = _nombresColumnas != null && _nombresColumnas.Length > 1 ? _nombresColumnas[1].ToUpper() : "PRODUCTO";
 			var encabezado = new StackLayout
@@ -355,14 +365,16 @@ namespace AyudanteNewen.Vistas
 										TextColor = Color.Black,
 										VerticalTextAlignment = TextAlignment.Center,
 										VerticalOptions = LayoutOptions.Center,
-										WidthRequest = App.AnchoRetratoDePantalla - (anchoColumnaNombreProd + 2)
+										WidthRequest = anchoColumnaDatosProd
 									}
 								}
 			};
 
+			var altoTeja = (productos.First()?.Length ?? 0) * 13;
+
 			var vista = new ListView
 			{
-				RowHeight = 60,
+				RowHeight = altoTeja,
 				VerticalOptions = LayoutOptions.StartAndExpand,
 				HorizontalOptions = LayoutOptions.Fill,
 				ItemsSource = listaProductos,
@@ -374,7 +386,8 @@ namespace AyudanteNewen.Vistas
 						TextColor = Color.FromHex("#1D1D1B"),
 						FontAttributes = FontAttributes.Bold,
 						VerticalOptions = LayoutOptions.CenterAndExpand,
-						WidthRequest = anchoColumnaNombreProd
+						WidthRequest = anchoColumnaNombreProd,
+						Margin = 3
 					};
 					nombreProducto.SetBinding(Label.TextProperty, "Nombre");
 
@@ -383,7 +396,7 @@ namespace AyudanteNewen.Vistas
 						FontSize = 15,
 						TextColor = Color.FromHex("#1D1D1B"),
 						VerticalOptions = LayoutOptions.CenterAndExpand,
-						WidthRequest = App.AnchoRetratoDePantalla - (anchoColumnaNombreProd + 2)
+						WidthRequest = anchoColumnaDatosProd
 					};
 					datos.SetBinding(Label.TextProperty, "Datos");
 
@@ -391,7 +404,7 @@ namespace AyudanteNewen.Vistas
 					{
 						WidthRequest = 2,
 						BackgroundColor = Color.FromHex("#FFFFFF"),
-						HeightRequest = 55
+						HeightRequest = altoTeja - 5
 					};
 
 					var tecla = new StackLayout
@@ -456,7 +469,7 @@ namespace AyudanteNewen.Vistas
 		#region Eventos
 
 		[Android.Runtime.Preserve]
-		private void AccederDatos(View arg1, object arg2)
+		private void AccederDatos()
 		{
 			_accesoDatos.Opacity = 0.5f;
 			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
@@ -469,7 +482,7 @@ namespace AyudanteNewen.Vistas
 		}
 
 		[Android.Runtime.Preserve]
-		private void RefrescarDatos(View arg1, object arg2)
+		private void RefrescarDatos()
 		{
 			_refrescar.Opacity = 0.5f;
 			Device.StartTimer(TimeSpan.FromMilliseconds(100), () =>
@@ -497,7 +510,7 @@ namespace AyudanteNewen.Vistas
 		}
 
 		[Android.Runtime.Preserve]
-		private void AbrirPaginaEscaner(View arg1, object arg2)
+		private void AbrirPaginaEscaner()
 		{
 			_escanearCodigo.Opacity = 0.5f;
 			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
@@ -560,7 +573,6 @@ namespace AyudanteNewen.Vistas
 			{
 				_linkHojaConsulta = CuentaUsuario.CambiarHojaSeleccionada(_listaHojas.Items[_listaHojas.SelectedIndex]);
 				_listaColumnasParaVer = CuentaUsuario.ObtenerColumnasParaVer().Split(',');
-				_listaColumnasInventario = CuentaUsuario.ObtenerColumnasInventario().Split(',');
 
 				RefrescarDatos(true);
 				//	ObtenerDatosProductosDesdeHCG();
@@ -607,7 +619,7 @@ namespace AyudanteNewen.Vistas
 		{
 			Id = id;
 			Nombre = datos[0];
-			Datos = string.Join(" - ", datos.Skip(1).Take(datos.Count));
+			Datos = string.Join("", datos.Skip(1).Take(datos.Count));
 			ColorFondo = esTeclaPar ? Color.FromHex("#EDEDED") : Color.FromHex("#E2E2E1");
 		}
 

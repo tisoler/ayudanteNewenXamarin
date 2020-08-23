@@ -20,7 +20,7 @@ namespace AyudanteNewen.Clases
 
 				foreach (CellEntry celda in _celdas.Entries)
 				{
-					if (celda.Row > 2)
+					if (celda.Row > 2 && celda.Column < 6)
 					{
 						if (celda.Column == 1 || celda.Column == 3) // 1: Código producto - 3: Código materia prima
 							relacionesTexto += celda.Value + "|";

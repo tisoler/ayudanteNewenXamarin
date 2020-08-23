@@ -78,11 +78,26 @@ namespace AyudanteNewen.Vistas
 		private void ConfigurarBotones()
 		{
 			_volver = App.Instancia.ObtenerImagen(TipoImagen.BotonVolver);
-			_volver.GestureRecognizers.Add(new TapGestureRecognizer(Volver));
+			_volver.GestureRecognizers.Add(new TapGestureRecognizer
+				{
+					Command = new Command(Volver),
+					NumberOfTapsRequired = 1
+				}
+			);
 			_movimientos = App.Instancia.ObtenerImagen(TipoImagen.BotonMovimientos);
-			_movimientos.GestureRecognizers.Add(new TapGestureRecognizer(AccederMovimientos));
+			_movimientos.GestureRecognizers.Add(new TapGestureRecognizer
+				{
+					Command = new Command(AccederMovimientos),
+					NumberOfTapsRequired = 1
+				}
+			);
 			_guardarCambios = App.Instancia.ObtenerImagen(TipoImagen.BotonGuardarCambios);
-			_guardarCambios.GestureRecognizers.Add(new TapGestureRecognizer(EventoGuardarCambios));
+			_guardarCambios.GestureRecognizers.Add(new TapGestureRecognizer
+				{
+					Command = new Command(EventoGuardarCambios),
+					NumberOfTapsRequired = 1
+				}
+			);
 
 			ContenedorBotones.Children.Add(_volver);
 			ContenedorBotones.Children.Add(_movimientos);
@@ -168,21 +183,23 @@ namespace AyudanteNewen.Vistas
 							HorizontalOptions = LayoutOptions.EndAndExpand,
 							VerticalOptions = LayoutOptions.Center,
 							HorizontalTextAlignment = TextAlignment.End,
-							Text = _listaLugares != null ? "Cantidad" : "Precio Total", //Si no hay lugares no hay campo PrecioTotal, el campo Cantidad toma esa etiqueta.
+							//Si no hay lugares no hay campo PrecioTotal, el campo Cantidad toma esa etiqueta.
+							Text = _listaLugares != null ? "Cantidad" : "Monto Total",
 							FontSize = 16,
-							WidthRequest = anchoEtiqueta - 13,
+							WidthRequest = anchoEtiqueta - 30,
 							TextColor = Color.Black
 						};
 
 						var botonSigno = new Button
 						{
-							Text = "+",
+							Text = "Ingreso",
 							HorizontalOptions = LayoutOptions.Center,
 							VerticalOptions = LayoutOptions.Center,
-							FontSize = 25,
+							FontSize = 13,
 							HeightRequest = 60,
-							WidthRequest = 60,
-							StyleId = i.ToString()
+							WidthRequest = 80,
+							StyleId = i.ToString(),
+							BackgroundColor = Color.FromHex("#32CEF9")
 						};
 
 						botonSigno.Clicked += DefinirSigno;
@@ -193,7 +210,7 @@ namespace AyudanteNewen.Vistas
 							VerticalOptions = LayoutOptions.Center,
 							HorizontalTextAlignment = TextAlignment.Start,
 							StyleId = "movimiento-" + i,
-							WidthRequest = anchoCampo - 55,
+							WidthRequest = anchoCampo - 65,
 							Keyboard = Keyboard.Numeric
 						};
 
@@ -221,7 +238,7 @@ namespace AyudanteNewen.Vistas
 								HorizontalOptions = LayoutOptions.EndAndExpand,
 								VerticalOptions = LayoutOptions.Center,
 								HorizontalTextAlignment = TextAlignment.End,
-								Text = "Precio Total",
+								Text = "Monto Total",
 								FontSize = 16,
 								WidthRequest = anchoEtiqueta,
 								TextColor = Color.Black
@@ -342,12 +359,13 @@ namespace AyudanteNewen.Vistas
 		{
 			var boton = (Button)sender;
 			var columna = Convert.ToInt32(boton.StyleId);
-			boton.Text = _signoPositivo[columna] ? "-" : "+";
-			_signoPositivo.SetValue(boton.Text == "+", columna);
+			boton.Text = _signoPositivo[columna] ? "Egreso" : "Ingreso";
+			boton.BackgroundColor = _signoPositivo[columna] ? Color.FromHex("#FD8A18") : Color.FromHex("#32CEF9");
+			_signoPositivo.SetValue(boton.Text.ToLower() == "ingreso", columna);
 		}
 
 		[Android.Runtime.Preserve]
-		private void EventoGuardarCambios(View arg1, object arg2)
+		private void EventoGuardarCambios()
 		{
 			_guardarCambios.Opacity = 0.5f;
 			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
@@ -444,7 +462,7 @@ namespace AyudanteNewen.Vistas
 		}
 
 		[Android.Runtime.Preserve]
-		private void AccederMovimientos(View arg1, object arg2)
+		private void AccederMovimientos()
 		{
 			_movimientos.Opacity = 0.5f;
 			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
@@ -456,7 +474,7 @@ namespace AyudanteNewen.Vistas
 		}
 
 		[Android.Runtime.Preserve]
-		private void Volver(View arg1, object arg2)
+		private void Volver()
 		{
 			_volver.Opacity = 0.5f;
 			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
