@@ -22,6 +22,7 @@ namespace AyudanteNewen.Vistas
 		private string _linkHojaConsulta;
 		private string[] _nombresColumnas;
 		private string[] _listaColumnasParaVer;
+		private string[] _listaColumnasInventario;
 		private ViewCell _ultimoItemSeleccionado;
 		private Color _ultimoColorSeleccionado;
 		private List<string[]> _productos;
@@ -219,6 +220,10 @@ namespace AyudanteNewen.Vistas
 			if (!string.IsNullOrEmpty(columnasParaVer))
 				_listaColumnasParaVer = columnasParaVer.Split(',');
 
+			var columnasInventario = CuentaUsuario.ObtenerColumnasInventario();
+			if (!string.IsNullOrEmpty(columnasInventario))
+				_listaColumnasInventario = columnasInventario.Split(',');
+
 			_indicadorActividad = new ActivityIndicator
 			{
 				VerticalOptions = LayoutOptions.CenterAndExpand,
@@ -308,14 +313,17 @@ namespace AyudanteNewen.Vistas
 
 		}
 
-		private void ConstruirVistaDeLista(IReadOnlyCollection<string[]> productos)
-		{
-			var esTeclaPar = false;
+		private List<ClaseProducto> ObtenerListaProductos(IReadOnlyCollection<string[]> productos)
+        {
+			bool esTeclaPar = false;
 			var listaProductos = new List<ClaseProducto>();
 			foreach (var datosProducto in productos)
 			{
 				var datosParaVer = new List<string>();
 				var i = 0;
+				decimal stockTotalProducto = 0;
+				decimal nivelStockMinimo = 0;
+
 				foreach (var dato in datosProducto)
 				{
 					var textoDato = "";
@@ -325,13 +333,29 @@ namespace AyudanteNewen.Vistas
 						textoDato += _nombresColumnas[i] + " : " + dato + '\n';
 						datosParaVer.Add(textoDato);
 					}
+					if (_listaColumnasInventario != null && _listaColumnasInventario[i] == "1")
+					{
+						stockTotalProducto += Convert.ToDecimal(dato);
+					}
+                    if (_nombresColumnas[i]?.ToLower() == "stock bajo")
+                    {
+						nivelStockMinimo = Convert.ToDecimal(dato);
+					}
+
 					i += 1;
 				}
 
-				var producto = new ClaseProducto(datosProducto[0], datosParaVer, esTeclaPar);
+				bool tieneBajoStock = stockTotalProducto <= nivelStockMinimo;
+				var producto = new ClaseProducto(datosProducto[0], datosParaVer, esTeclaPar, tieneBajoStock);
 				listaProductos.Add(producto);
 				esTeclaPar = !esTeclaPar;
 			}
+			return listaProductos;
+		}
+
+		private void ConstruirVistaDeLista(IReadOnlyCollection<string[]> productos)
+		{
+			var listaProductos = ObtenerListaProductos(productos);
 
 			var anchoColumnaNombreProd = App.AnchoRetratoDePantalla * 0.55;
 			var anchoColumnaDatosProd = App.AnchoRetratoDePantalla - (anchoColumnaNombreProd + 2); // 2 por el ancho del divisor
@@ -573,9 +597,9 @@ namespace AyudanteNewen.Vistas
 			{
 				_linkHojaConsulta = CuentaUsuario.CambiarHojaSeleccionada(_listaHojas.Items[_listaHojas.SelectedIndex]);
 				_listaColumnasParaVer = CuentaUsuario.ObtenerColumnasParaVer().Split(',');
+				_listaColumnasInventario = CuentaUsuario.ObtenerColumnasInventario().Split(',');
 
 				RefrescarDatos(true);
-				//	ObtenerDatosProductosDesdeHCG();
 				return false;
 			});
 		}
@@ -615,12 +639,16 @@ namespace AyudanteNewen.Vistas
 	public class ClaseProducto
 	{
 		[Android.Runtime.Preserve]
-		public ClaseProducto(string id, IList<string> datos, bool esTeclaPar)
+		public ClaseProducto(string id, IList<string> datos, bool esTeclaPar, bool tieneBajoStock)
 		{
 			Id = id;
 			Nombre = datos[0];
 			Datos = string.Join("", datos.Skip(1).Take(datos.Count));
-			ColorFondo = esTeclaPar ? Color.FromHex("#EDEDED") : Color.FromHex("#E2E2E1");
+			ColorFondo = tieneBajoStock
+				? Color.FromHex("#FE6161")
+				: esTeclaPar
+					? Color.FromHex("#EDEDED")
+					: Color.FromHex("#E2E2E1");
 		}
 
 		[Android.Runtime.Preserve]

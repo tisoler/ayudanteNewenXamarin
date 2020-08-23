@@ -31,37 +31,46 @@ namespace AyudanteNewen.Vistas
 		public Producto(CellEntry[] producto, string[] nombresColumnas, SpreadsheetsService servicio, string titulo)
 		{
 			InitializeComponent();
+			_nombresColumnas = nombresColumnas;
+			// Almacenar el arreglo de strings para obtener el nivel de stock y para cargar el producto en pantalla
+			_productoString = ObtenerArregloCeldasProducto(producto);
 			InicializarValoresGenerales();
 			_producto = producto;
 			_servicio = servicio;
-			_nombresColumnas = nombresColumnas;
 			Titulo.Text += " " + titulo.Replace("App", "").Replace("es ", " ").Replace("s ", " ");
 
-			//Almacenar el arreglo de strings para cargar el producto en pantalla
-			_productoString = new string[producto.Length];
+			ConstruirVistaDeProducto();
+		}
+
+		private string[] ObtenerArregloCeldasProducto(CellEntry[] producto)
+        {
+			var productoString = new string[producto.Length];
 			var i = 0;
 			foreach (var celda in producto)
 			{
-				_productoString.SetValue(celda.Value, i);
+				productoString.SetValue(celda.Value, i);
 				i += 1;
 			}
-
-			ConstruirVistaDeProducto();
+			return productoString;
 		}
 
 		public Producto(string[] productoBD, string[] nombresColumnas)
 		{
 			InitializeComponent();
-			InicializarValoresGenerales();
-			_productoString = productoBD;
 			_nombresColumnas = nombresColumnas;
+			_productoString = productoBD;
+			InicializarValoresGenerales();
 
 			ConstruirVistaDeProducto();
 		}
 
 		private void InicializarValoresGenerales()
 		{
+			var columnasInventario = CuentaUsuario.ObtenerColumnasInventario();
+			_listaColumnasInventario = !string.IsNullOrEmpty(columnasInventario) ? _listaColumnasInventario = columnasInventario.Split(',') : null;
+
 			SombraEncabezado.Source = ImageSource.FromResource(App.RutaImagenSombraEncabezado);
+			IndicadorBajoStock.IsVisible = EsBajoStock();
 
 			ConfigurarBotones();
 
@@ -75,7 +84,28 @@ namespace AyudanteNewen.Vistas
 			_indicadorActividad.SetBinding(ActivityIndicator.IsRunningProperty, "IsBusy");
 		}
 
-		private void ConfigurarBotones()
+        private bool EsBajoStock()
+        {
+			int i = 0;
+			decimal stockTotalProducto = 0;
+			decimal nivelStockMinimo = 0;
+
+			foreach (var dato in _productoString)
+			{
+				if (_listaColumnasInventario != null && _listaColumnasInventario[i] == "1")
+				{
+					stockTotalProducto += Convert.ToDecimal(dato);
+				}
+				if (_nombresColumnas[i]?.ToLower() == "stock bajo")
+				{
+					nivelStockMinimo = Convert.ToDecimal(dato);
+				}
+				i += 1;
+			}
+			return stockTotalProducto <= nivelStockMinimo;
+		}
+
+        private void ConfigurarBotones()
 		{
 			_volver = App.Instancia.ObtenerImagen(TipoImagen.BotonVolver);
 			_volver.GestureRecognizers.Add(new TapGestureRecognizer
@@ -106,11 +136,6 @@ namespace AyudanteNewen.Vistas
 
 		private void ConstruirVistaDeProducto()
 		{
-			var columnasInventario = CuentaUsuario.ObtenerColumnasInventario();
-			_listaColumnasInventario = null;
-			if (!string.IsNullOrEmpty(columnasInventario))
-				_listaColumnasInventario = columnasInventario.Split(',');
-
 			//Obtener, si existen, los puntos de venta.
 			var puntosVentaTexto = CuentaUsuario.ObtenerPuntosVenta();
 			_listaLugares = null;
