@@ -330,7 +330,7 @@ namespace AyudanteNewen.Vistas
 
 					if (_listaColumnasParaVer != null && _listaColumnasParaVer[i] == "1")
 					{
-						textoDato += _nombresColumnas[i] + " : " + dato + '\n';
+						textoDato += _nombresColumnas[i] + ": " + dato + '\n';
 						datosParaVer.Add(textoDato);
 					}
 					if (_listaColumnasInventario != null && _listaColumnasInventario[i] == "1")
@@ -394,7 +394,7 @@ namespace AyudanteNewen.Vistas
 								}
 			};
 
-			var altoTeja = (productos.First()?.Length ?? 0) * 13;
+			var altoTeja = (_listaColumnasParaVer?.Where(x => x == "1").Count() ?? 0) * 17;
 
 			var vista = new ListView
 			{
