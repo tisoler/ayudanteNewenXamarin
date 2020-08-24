@@ -43,45 +43,51 @@
     <Compile Include="Clases\LugaresCompraVenta.cs" />
     <Compile Include="Clases\RelacionInsumoProducto.cs" />
     <Compile Include="Servicios\ServiciosGoogle.cs" />
-    <Compile Include="Vistas\ListaHojasPtosVtaGoogle.xaml.cs">
+    <Compile Include="Vistas\ConfiguracionDrive\ListaHojasPtosVtaGoogle.xaml.cs">
       <DependentUpon>ListaHojasPtosVtaGoogle.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Vistas\OpcionPuntosVenta.xaml.cs">
+    <Compile Include="Vistas\ConfiguracionDrive\OpcionPuntosVenta.xaml.cs">
       <DependentUpon>OpcionPuntosVenta.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Vistas\AccesoDatos.xaml.cs">
+    <Compile Include="Vistas\Autenticacion\AccesoDatos.xaml.cs">
       <DependentUpon>AccesoDatos.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Vistas\ListaHojasHistoricoGoogle.xaml.cs">
+    <Compile Include="Vistas\ConfiguracionDrive\ListaHojasHistoricoGoogle.xaml.cs">
       <DependentUpon>ListaHojasHistoricoGoogle.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Vistas\ListaHojasCalculoGoogle.xaml.cs">
+    <Compile Include="Vistas\ConfiguracionDrive\ListaHojasCalculoGoogle.xaml.cs">
       <DependentUpon>ListaHojasCalculoGoogle.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Vistas\ListaLibrosGoogle.xaml.cs">
+    <Compile Include="Vistas\ConfiguracionDrive\ListaLibrosGoogle.xaml.cs">
       <DependentUpon>ListaLibrosGoogle.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Vistas\PaginaAuntenticacion.xaml.cs">
+    <Compile Include="Vistas\Autenticacion\PaginaAuntenticacion.xaml.cs">
       <DependentUpon>PaginaAuntenticacion.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Vistas\PaginaConexionBaseDeDatos.xaml.cs">
+    <Compile Include="Vistas\Autenticacion\PaginaConexionBaseDeDatos.xaml.cs">
       <DependentUpon>PaginaConexionBaseDeDatos.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Vistas\PaginaGrilla.xaml.cs">
+    <Compile Include="Vistas\Pedidos\PedidosGrilla.xaml.cs">
+      <DependentUpon>PedidosGrilla.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Vistas\Stock\PaginaGrilla.xaml.cs">
       <DependentUpon>PaginaGrilla.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Vistas\ProductoMovimientos.xaml.cs">
+    <Compile Include="Vistas\Pedidos\Pedido.xaml.cs">
+      <DependentUpon>Pedido.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Vistas\Stock\ProductoMovimientos.xaml.cs">
       <DependentUpon>ProductoMovimientos.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Vistas\Producto.xaml.cs">
+    <Compile Include="Vistas\Stock\Producto.xaml.cs">
       <DependentUpon>Producto.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Vistas\SeleccionColumnasInventario.xaml.cs">
+    <Compile Include="Vistas\ConfiguracionDrive\SeleccionColumnasInventario.xaml.cs">
       <DependentUpon>SeleccionColumnasInventario.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Vistas\SeleccionColumnasParaVer.xaml.cs">
+    <Compile Include="Vistas\ConfiguracionDrive\SeleccionColumnasParaVer.xaml.cs">
       <DependentUpon>SeleccionColumnasParaVer.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
@@ -150,55 +156,55 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Imagenes\refrescarHoja.png" />
-    <EmbeddedResource Include="Vistas\PaginaGrilla.xaml">
+    <EmbeddedResource Include="Vistas\Stock\PaginaGrilla.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\PaginaAuntenticacion.xaml">
+    <EmbeddedResource Include="Vistas\Autenticacion\PaginaAuntenticacion.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\AccesoDatos.xaml">
+    <EmbeddedResource Include="Vistas\Autenticacion\AccesoDatos.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\ListaHojasCalculoGoogle.xaml">
+    <EmbeddedResource Include="Vistas\ConfiguracionDrive\ListaHojasCalculoGoogle.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\ListaLibrosGoogle.xaml">
+    <EmbeddedResource Include="Vistas\ConfiguracionDrive\ListaLibrosGoogle.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\Producto.xaml">
+    <EmbeddedResource Include="Vistas\Stock\Producto.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\SeleccionColumnasParaVer.xaml">
+    <EmbeddedResource Include="Vistas\ConfiguracionDrive\SeleccionColumnasParaVer.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\SeleccionColumnasInventario.xaml">
+    <EmbeddedResource Include="Vistas\ConfiguracionDrive\SeleccionColumnasInventario.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\PaginaConexionBaseDeDatos.xaml">
+    <EmbeddedResource Include="Vistas\Autenticacion\PaginaConexionBaseDeDatos.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -212,7 +218,7 @@
     <EmbeddedResource Include="Imagenes\sombraEncabezado.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\ListaHojasHistoricoGoogle.xaml">
+    <EmbeddedResource Include="Vistas\ConfiguracionDrive\ListaHojasHistoricoGoogle.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -222,13 +228,13 @@
     <EmbeddedResource Include="Imagenes\hojaInventario.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\OpcionPuntosVenta.xaml">
+    <EmbeddedResource Include="Vistas\ConfiguracionDrive\OpcionPuntosVenta.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\ListaHojasPtosVtaGoogle.xaml">
+    <EmbeddedResource Include="Vistas\ConfiguracionDrive\ListaHojasPtosVtaGoogle.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -237,7 +243,7 @@
     <EmbeddedResource Include="Imagenes\hojaPtoVta.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Vistas\ProductoMovimientos.xaml">
+    <EmbeddedResource Include="Vistas\Stock\ProductoMovimientos.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -254,6 +260,18 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Imagenes\listo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Vistas\Pedidos\Pedido.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Vistas\Pedidos\PedidosGrilla.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <Import Project="..\..\packages\Xamarin.Forms.2.3.3.193\build\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+Xamarin.iOS10+xamarinmac20\Xamarin.Forms.targets" Condition="Exists('..\..\packages\Xamarin.Forms.2.3.3.193\build\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+Xamarin.iOS10+xamarinmac20\Xamarin.Forms.targets')" />
