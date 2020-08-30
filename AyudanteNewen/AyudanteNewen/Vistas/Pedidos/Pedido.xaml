@@ -11,15 +11,12 @@
             </StackLayout>
             <StackLayout BackgroundColor="#C0C0C0" Spacing="0" Padding="0" Orientation="Horizontal">
                 <StackLayout Spacing="0" Padding="0" HorizontalOptions="CenterAndExpand">
-				    <Label x:Name="Titulo" FontSize="18" FontAttributes="Bold" TextColor="Black" HorizontalOptions="Center" HeightRequest="30">Detalle de</Label>
-                </StackLayout>
-                <StackLayout x:Name="IndicadorBajoStock" BackgroundColor="#FE6161" WidthRequest="100" Spacing="0" Padding="0" HorizontalOptions="End">
-                    <Label FontSize="16" TextColor="White" HorizontalOptions="Center" HeightRequest="30">Stock bajo</Label>
+                    <Label x:Name="Titulo" FontSize="18" FontAttributes="Bold" TextColor="Black" HorizontalOptions="Center" HeightRequest="30">Pedido</Label>
                 </StackLayout>
             </StackLayout>
-        <ScrollView Orientation="Vertical" VerticalOptions="FillAndExpand" HorizontalOptions="Fill">
-			<StackLayout x:Name="ContenedorProducto" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0"></StackLayout>
-        </ScrollView>
+            <ScrollView Orientation="Vertical" VerticalOptions="FillAndExpand" HorizontalOptions="Fill">
+			    <StackLayout x:Name="ContenedorProducto" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0"></StackLayout>
+            </ScrollView>
 			<StackLayout x:Name="ContenedorBotones" Spacing="0" Padding="0" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End"></StackLayout>
         </StackLayout>
     </ContentPage.Content>

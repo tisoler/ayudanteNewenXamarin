@@ -287,7 +287,7 @@ namespace AyudanteNewen.Vistas
 					if (celda.Row == fila)
 						productoSeleccionado.SetValue(celda, (int)celda.Column - 1);
 
-					// Si encontró producto (fila > -1) y ya pasó alpróximo producto (celda.Row > fila) o es el último producto (celda.Column == _celdas.ColCount.Count)
+					// Si encontró producto (fila > -1) y ya pasó al próximo producto (celda.Row > fila) o es el último producto (celda.Column == _celdas.ColCount.Count)
 					if (fila > -1 && (celda.Row > fila || celda.Column == _celdas.ColCount.Count))
 					{
 						var titulo = _nombresColumnas != null && _nombresColumnas.Length > 1 ? _nombresColumnas[1] : "PRODUCTO";
@@ -310,7 +310,6 @@ namespace AyudanteNewen.Vistas
 			// Si fila = -1 no se ha encuentrado el código
 			if (fila == -1)
 				await DisplayAlert("Código", "No se ha encontrado un producto para el código escaneado.", "Listo");
-
 		}
 
 		private List<ClaseProducto> ObtenerListaProductos(IReadOnlyCollection<string[]> productos)
@@ -368,30 +367,32 @@ namespace AyudanteNewen.Vistas
 				BackgroundColor = Color.FromHex("#C0C0C0"),
 				HeightRequest = productos.Count <= 25 ? 35 : 50,
 				Children =
-								{
-									new Label
-									{
-										Text = "  " + titulo,
-										FontSize = 13,
-										HorizontalOptions = LayoutOptions.Center,
-										FontAttributes = FontAttributes.Bold,
-										TextColor = Color.Black,
-										VerticalTextAlignment = TextAlignment.Center,
-										VerticalOptions = LayoutOptions.Center,
-										WidthRequest = anchoColumnaNombreProd
-									},
-									new Label
-									{
-										Text = "       INFO",
-										FontSize = 13,
-										HorizontalOptions = LayoutOptions.End,
-										FontAttributes = FontAttributes.Bold,
-										TextColor = Color.Black,
-										VerticalTextAlignment = TextAlignment.Center,
-										VerticalOptions = LayoutOptions.Center,
-										WidthRequest = anchoColumnaDatosProd
-									}
-								}
+					{
+						new Label
+						{
+							Text = titulo,
+							FontSize = 13,
+							HorizontalOptions = LayoutOptions.CenterAndExpand,
+							FontAttributes = FontAttributes.Bold,
+							TextColor = Color.Black,
+							VerticalTextAlignment = TextAlignment.Center,
+							HorizontalTextAlignment = TextAlignment.Center,
+							VerticalOptions = LayoutOptions.Center,
+							WidthRequest = anchoColumnaNombreProd
+						},
+						new Label
+						{
+							Text = "INFO",
+							FontSize = 13,
+							HorizontalOptions = LayoutOptions.CenterAndExpand,
+							FontAttributes = FontAttributes.Bold,
+							TextColor = Color.Black,
+							VerticalTextAlignment = TextAlignment.Center,
+							HorizontalTextAlignment = TextAlignment.Center,
+							VerticalOptions = LayoutOptions.Center,
+							WidthRequest = anchoColumnaDatosProd
+						}
+					}
 			};
 
 			var altoTeja = (_listaColumnasParaVer?.Where(x => x == "1").Count() ?? 0) * 17;
@@ -534,42 +535,42 @@ namespace AyudanteNewen.Vistas
 		}
 
 		[Android.Runtime.Preserve]
-		private void AbrirPaginaEscaner()
+		private async void AbrirPaginaEscaner()
 		{
 			_escanearCodigo.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
-			{
-				var paginaEscaner = new ZXingScannerPage();
+			await Navigation.PushAsync(new PedidosGrilla(_servicio), true);
+			//Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
+			//{
+			//	var paginaEscaner = new ZXingScannerPage();
 
-				paginaEscaner.OnScanResult += (result) =>
-				{
-					// Detiene el escaner
-					paginaEscaner.IsScanning = false;
+			//	paginaEscaner.OnScanResult += (result) =>
+			//	{
+			//		// Detiene el escaner
+			//		paginaEscaner.IsScanning = false;
 
-					//Hace autofoco, particularmente para los códigos de barra
-					var ts = new TimeSpan(0, 0, 0, 3, 0);
-					Device.StartTimer(ts, () =>
-					{
-						if (paginaEscaner.IsScanning)
-							paginaEscaner.AutoFocus();
-						return true;
-					});
+			//		//Hace autofoco, particularmente para los códigos de barra
+			//		var ts = new TimeSpan(0, 0, 0, 3, 0);
+			//		Device.StartTimer(ts, () =>
+			//		{
+			//			if (paginaEscaner.IsScanning)
+			//				paginaEscaner.AutoFocus();
+			//			return true;
+			//		});
 
-					// Cierra la página del escaner y llama a la página del producto
-					Device.BeginInvokeOnMainThread(() =>
-					{
-						Navigation.PopModalAsync();
-						IrAlProducto(result.Text);
-					});
-				};
+			//		// Cierra la página del escaner y llama a la página del producto
+			//		Device.BeginInvokeOnMainThread(() =>
+			//		{
+			//			Navigation.PopModalAsync();
+			//			IrAlProducto(result.Text);
+			//		});
+			//	};
 
-				// Abre la página del escaner
-				Navigation.PushModalAsync(paginaEscaner);
+			//	// Abre la página del escaner
+			//	Navigation.PushModalAsync(paginaEscaner);
 
-				_escanearCodigo.Opacity = 1f;
-				return false;
-			});
-
+			//	_escanearCodigo.Opacity = 1f;
+			//	return false;
+			//});
 		}
 
 		[Android.Runtime.Preserve]
@@ -631,7 +632,6 @@ namespace AyudanteNewen.Vistas
 		}
 
 		#endregion
-
 	}
 
 	//Clase Producto: utilizada para armar la lista scrolleable de productos

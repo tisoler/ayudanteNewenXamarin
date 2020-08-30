@@ -8,9 +8,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xamarin.Forms;
-using ZXing.Net.Mobile.Forms;
 using DataTemplate = Xamarin.Forms.DataTemplate;
 using TextAlignment = Xamarin.Forms.TextAlignment;
+using System.IO;
 
 namespace AyudanteNewen.Vistas
 {
@@ -18,36 +18,26 @@ namespace AyudanteNewen.Vistas
 	{
 		private readonly ServiciosGoogle _servicioGoogle;
 		private readonly SpreadsheetsService _servicio;
-		private CellFeed _celdas;
-		private string _linkHojaConsulta;
 		private string[] _nombresColumnas;
-		private string[] _listaColumnasParaVer;
-		private string[] _listaColumnasInventario;
 		private ViewCell _ultimoItemSeleccionado;
 		private Color _ultimoColorSeleccionado;
-		private List<string[]> _productos;
-		private bool _esCargaInicial = true;
+		private List<string[]> _pedidos;
 		private ActivityIndicator _indicadorActividad;
-		private Image _accesoDatos;
 		private Image _refrescar;
-		private Image _escanearCodigo;
-		private Picker _listaHojas;
-		private double _anchoActual;
+		private Image _crearPedido;
+		private List<ClasePedido> _listaPedidos;
 
 		//Constructor para Hoja de cálculo de Google
-		public PedidosGrilla(string linkHojaConsulta, SpreadsheetsService servicio)
+		public PedidosGrilla(SpreadsheetsService servicio)
 		{
 			InitializeComponent();
 
-			_linkHojaConsulta = linkHojaConsulta;
 			_servicioGoogle = new ServiciosGoogle();
-			//El servicio viene nulo cuando se llama directamente desde el lanzador (ya tiene conexión a datos configurada)
+			// El servicio viene nulo cuando se llama directamente desde el lanzador (ya tiene conexión a datos configurada)
 			_servicio = servicio ?? _servicioGoogle.ObtenerServicioParaConsultaGoogleSpreadsheets(CuentaUsuario.ObtenerTokenActualDeGoogle());
 
 			InicializarValoresGenerales();
-			ConfigurarSelectorHojas();
-
-			//La carga de los productos se realiza en el OnAppearing
+			// La carga de los pedidos se realiza en el OnAppearing
 		}
 
 		//Constructor para Base de Datos
@@ -55,13 +45,14 @@ namespace AyudanteNewen.Vistas
 		{
 			InitializeComponent();
 			InicializarValoresGenerales();
-			ObtenerProductosDesdeBD();
+			ObtenerPedidosDesdeBD();
 		}
 
 		#region Métodos para Hoja de cálculo de Google
 
-		private async void ObtenerDatosProductosDesdeHCG(bool refrescarLugaresRelaciones)
+		private async void ObtenerDatosPedidosDesdeHCG()
 		{
+			CellFeed celdas;
 			try
 			{
 				IsBusy = true;
@@ -70,15 +61,35 @@ namespace AyudanteNewen.Vistas
 				{
 					if (CuentaUsuario.ValidarTokenDeGoogle())
 					{
-						_celdas = _servicioGoogle.ObtenerCeldasDeUnaHoja(_linkHojaConsulta, _servicio);
+						var linkHojaPedidos = "https://spreadsheets.google.com/feeds/cells/1nym6a5ctSFfyZkbMmbiC8pCyG_qBaWZK9xKN3BSKyS8/obbk7z3/private/full";
+						celdas = _servicioGoogle.ObtenerCeldasDeUnaHoja(linkHojaPedidos, _servicio);
 
-						//Refresca los lugares (compra o venta) y relaciones (insumos - productos) sólo cuando presionamos el botón de refrescar y durante la carga inicial
-						if (refrescarLugaresRelaciones)
-							RefrescarLugCompVtas_RelacionInsProd();
+						_nombresColumnas = new string[celdas.ColCount.Count];
+
+						var pedidos = new List<string[]>();
+						var pedido = new string[celdas.ColCount.Count];
+
+						foreach (CellEntry celda in celdas.Entries)
+						{
+							if (celda.Row != 1)
+							{
+								if (celda.Column == 1)
+									pedido = new string[celdas.ColCount.Count];
+
+								pedido.SetValue(celda.Value, (int)celda.Column - 1);
+
+								if (celda.Column == celdas.ColCount.Count)
+									pedidos.Add(pedido);
+							}
+							else
+								_nombresColumnas.SetValue(celda.Value, (int)celda.Column - 1);
+						}
+
+						LlenarGrillaDePedidos(pedidos);
 					}
 					else
 					{
-						//Si se quedó la pantalla abierta un largo tiempo y se venció el token, se cierra y refresca el token
+						// Si se quedó la pantalla abierta un largo tiempo y se venció el token, se cierra y refresca el token.
 						var paginaAuntenticacion = new PaginaAuntenticacion(true);
 						Navigation.InsertPageBefore(paginaAuntenticacion, this);
 						await Navigation.PopAsync();
@@ -89,86 +100,33 @@ namespace AyudanteNewen.Vistas
 			{
 				IsBusy = false; //Remueve el Indicador de Actividad.
 			}
-
-			_nombresColumnas = new string[_celdas.ColCount.Count];
-
-			var productos = new List<string[]>();
-			var producto = new string[_celdas.ColCount.Count];
-
-			foreach (CellEntry celda in _celdas.Entries)
-			{
-				if (celda.Row != 1)
-				{
-					if (celda.Column == 1)
-						producto = new string[_celdas.ColCount.Count];
-
-					producto.SetValue(celda.Value, (int)celda.Column - 1);
-
-					if (celda.Column == _celdas.ColCount.Count)
-						productos.Add(producto);
-				}
-				else
-					_nombresColumnas.SetValue(celda.Value, (int)celda.Column - 1);
-			}
-
-			LlenarGrillaDeProductos(productos);
-		}
-
-		private void ConfigurarSelectorHojas()
-		{
-			_listaHojas = new Picker
-			{
-				IsVisible = false,
-				WidthRequest = App.AnchoRetratoDePantalla * .5,
-				HorizontalOptions = LayoutOptions.EndAndExpand,
-				VerticalOptions = LayoutOptions.Center
-			};
-
-			_listaHojas.IsVisible = true;
-			var nombreHojaActual = CuentaUsuario.ObtenerNombreHoja(_linkHojaConsulta);
-			var nombres = CuentaUsuario.ObtenerTodosLosNombresDeHojas();
-			var i = 0;
-			foreach (var nombre in nombres)
-			{
-				_listaHojas.Items.Add(nombre);
-				if (nombre == nombreHojaActual)
-					_listaHojas.SelectedIndex = i;
-				i += 1;
-			}
-
-			_listaHojas.SelectedIndexChanged += CargarHoja;
-			Cabecera.Children.Add(_listaHojas);
 		}
 
 		#endregion
 
 		#region Métodos para Base de Datos
 
-		private async void ObtenerProductosDesdeBD()
+		private async void ObtenerPedidosDesdeBD()
 		{
-			//var url = $@"http://169.254.80.80/PruebaMision/Service.asmx/RecuperarProductos?token={
-			//		CuentaUsuario.ObtenerTokenActualDeBaseDeDatos()
-			//	}";
-
 			RefrescarUIGrilla();
 
 			const string url = "http://www.misionantiinflacion.com.ar/api/v1/products?token=05f9a1a6683c2ba246c2b057d0433429a176b674d9a68557ddbdcf33c474aee4";
 
 			using (var cliente = new HttpClient())
 			{
-				List<string[]> productos = null;
+				List<string[]> pedidos = null;
 				try
 				{
 					IsBusy = true;
 
 					await Task.Run(async () =>
 					{
-						//Obtiene json de productos desde el webservice
-						var jsonProductos = await cliente.GetStringAsync(url);
-						//Parsea el json para obtener la lista de productos
-						productos = ParsearJSONProductos(jsonProductos);
+						// Obtiene json de pedidos desde el webservice
+						var jsonPedidos = await cliente.GetStringAsync(url);
+						// Parsea el json para obtener la lista de pedidos
+						pedidos = ParsearJSONPedidos(jsonPedidos);
 
-						_nombresColumnas = new[] { "Código", "Nombre", "Stock" };
+						_nombresColumnas = new[] { "Fecha", "Id Cliente", "Cliente", "Fecha entrega", "Estado", "Usuario", "Comentario" };
 					});
 				}
 				finally
@@ -176,35 +134,35 @@ namespace AyudanteNewen.Vistas
 					IsBusy = false;
 				}
 
-				if (productos != null)
-					LlenarGrillaDeProductos(productos);
+				if (pedidos != null)
+					LlenarGrillaDePedidos(pedidos);
 			}
 		}
 
-		private static List<string[]> ParsearJSONProductos(string jsonProductos)
+		private static List<string[]> ParsearJSONPedidos(string jsonPedidoss)
 		{
-			jsonProductos = jsonProductos.Substring(jsonProductos.IndexOf("\"data\":[{") + 9)
+			jsonPedidoss = jsonPedidoss.Substring(jsonPedidoss.IndexOf("\"data\":[{") + 9)
 				.Replace("}]}", "")
 				.Replace("},{\"id\"", "|");
-			var arregloProductos = jsonProductos.Split('|');
-			var productos = new List<string[]>();
+			var arregloPedidos = jsonPedidoss.Split('|');
+			var pedidos = new List<string[]>();
 
-			foreach (var datos in arregloProductos)
+			foreach (var datos in arregloPedidos)
 			{
 				var temporal = datos.Replace(",\"", "|").Split('|');
 
-				//Si el producto no está oculto lo agregamos
+				//Si el pedido no está oculto lo agregamos
 				if (temporal[12].Split(':')[1].TrimStart('"').TrimEnd('"') == "true") continue;
-				var producto = new string[3];
-				producto[0] = temporal[0].Split(':')[1].TrimStart('"').TrimEnd('"'); // ID
-				producto[1] = temporal[2].Split(':')[1].TrimStart('"').TrimEnd('"').Replace("\\\"", "\""); // Nombre
+				var pedido = new string[3];
+				pedido[0] = temporal[0].Split(':')[1].TrimStart('"').TrimEnd('"'); // ID
+				pedido[1] = temporal[2].Split(':')[1].TrimStart('"').TrimEnd('"').Replace("\\\"", "\""); // Nombre
 				var stock = temporal[18].Split(':')[1].TrimStart('"').TrimEnd('"'); // Stock
-				producto[2] = stock == "null" ? "0" : stock;
+				pedido[2] = stock == "null" ? "0" : stock;
 
-				productos.Add(producto);
+				pedidos.Add(pedido);
 			}
 
-			return productos;
+			return pedidos;
 		}
 
 		#endregion
@@ -215,14 +173,6 @@ namespace AyudanteNewen.Vistas
 		{
 			SombraEncabezado.Source = ImageSource.FromResource(App.RutaImagenSombraEncabezado);
 			ConfigurarBotones();
-
-			var columnasParaVer = CuentaUsuario.ObtenerColumnasParaVer();
-			if (!string.IsNullOrEmpty(columnasParaVer))
-				_listaColumnasParaVer = columnasParaVer.Split(',');
-
-			var columnasInventario = CuentaUsuario.ObtenerColumnasInventario();
-			if (!string.IsNullOrEmpty(columnasInventario))
-				_listaColumnasInventario = columnasInventario.Split(',');
 
 			_indicadorActividad = new ActivityIndicator
 			{
@@ -236,206 +186,151 @@ namespace AyudanteNewen.Vistas
 
 		private void ConfigurarBotones()
 		{
-			_accesoDatos = App.Instancia.ObtenerImagen(TipoImagen.BotonAccesoDatos);
-			_accesoDatos.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(AccederDatos),
-					NumberOfTapsRequired = 1
-				}
-			);
 			_refrescar = App.Instancia.ObtenerImagen(TipoImagen.BotonRefrescarDatos);
 			_refrescar.GestureRecognizers.Add(new TapGestureRecognizer
 				{
-					Command = new Command(RefrescarDatos),
+					Command = new Command(AccionRefrescarDatos),
 					NumberOfTapsRequired = 1
 				}
 			);
-			_escanearCodigo = App.Instancia.ObtenerImagen(TipoImagen.BotonEscanearCodigo);
-			_escanearCodigo.GestureRecognizers.Add(new TapGestureRecognizer
+			_crearPedido = App.Instancia.ObtenerImagen(TipoImagen.BotonEscanearCodigo);
+			_crearPedido.GestureRecognizers.Add(new TapGestureRecognizer
 				{
-					Command = new Command(AbrirPaginaEscaner),
+					Command = new Command(CrearPedido),
 					NumberOfTapsRequired = 1
 				}
 			);
 
-			ContenedorBotones.Children.Add(_accesoDatos);
 			ContenedorBotones.Children.Add(_refrescar);
-			ContenedorBotones.Children.Add(_escanearCodigo);
+			ContenedorBotones.Children.Add(_crearPedido);
 		}
 
-		private void LlenarGrillaDeProductos(List<string[]> productos, bool esBusqueda = false)
+		private void LlenarGrillaDePedidos(List<string[]> pedidos, bool esBusqueda = false)
 		{
-			//Se carga la grilla de productos y se muestra en pantalla.
-			ConstruirVistaDeLista(productos);
+			// Se carga la grilla de pedidos y se muestra en pantalla.
+			ConstruirVistaDeLista(pedidos);
 			if (!esBusqueda)
-				FijarProductosYBuscador(productos);
+				FijarPedidosYBuscador(pedidos);
 		}
 
-		private async void IrAlProducto(string codigoProductoSeleccionado)
+		private async void IrAlPedido(string idPedidoSeleccionado)
 		{
-			var fila = -1;
-			GrupoEncabezado.IsVisible = false;
-			if (CuentaUsuario.ObtenerAccesoDatos() == "G")
-			{
-				var productoSeleccionado = new CellEntry[_celdas.ColCount.Count];
-
-				// Obtener el arreglo del producto para enviar
-				foreach (CellEntry celda in _celdas.Entries)
-				{
-					if (celda.Column == 1 && celda.Value == codigoProductoSeleccionado)
-						fila = (int)celda.Row;
-					if (celda.Row == fila)
-						productoSeleccionado.SetValue(celda, (int)celda.Column - 1);
-
-					// Si encontró producto (fila > -1) y ya pasó alpróximo producto (celda.Row > fila) o es el último producto (celda.Column == _celdas.ColCount.Count)
-					if (fila > -1 && (celda.Row > fila || celda.Column == _celdas.ColCount.Count))
-					{
-						var titulo = _nombresColumnas != null && _nombresColumnas.Length > 1 ? _nombresColumnas[1] : "PRODUCTO";
-						await Navigation.PushAsync(new Producto(productoSeleccionado, _nombresColumnas, _servicio, titulo), true);
-						break;
-					}
-				}
-			}
+			ClasePedido pedisoSeleccionado = _listaPedidos.FirstOrDefault(pedido => pedido.Id == idPedidoSeleccionado);
+			if (pedisoSeleccionado != null)
+				await Navigation.PushAsync(new Pedido(pedisoSeleccionado, _nombresColumnas, _servicio), true);
 			else
-			{
-				foreach (var producto in _productos)
-				{
-					if (producto[0] != codigoProductoSeleccionado) continue;
-					fila = 0;
-					await Navigation.PushAsync(new Producto(producto, _nombresColumnas), true);
-					break;
-				}
-			}
-			GrupoEncabezado.IsVisible = true;
-			// Si fila = -1 no se ha encuentrado el código
-			if (fila == -1)
-				await DisplayAlert("Código", "No se ha encontrado un producto para el código escaneado.", "Listo");
+				await DisplayAlert("Código", "No se ha encontrado un pedido para el código seleccionado.", "Listo");
 
 		}
 
-		private List<ClaseProducto> ObtenerListaProductos(IReadOnlyCollection<string[]> productos)
+		private List<ClasePedido> ObtenerListaPedidos(IReadOnlyCollection<string[]> pedidos)
         {
 			bool esTeclaPar = false;
-			var listaProductos = new List<ClaseProducto>();
-			foreach (var datosProducto in productos)
+			var listaPedidos = new List<ClasePedido>();
+			foreach (var filaPedido in pedidos)
 			{
-				var datosParaVer = new List<string>();
-				var i = 0;
-				decimal stockTotalProducto = 0;
-				decimal nivelStockMinimo = 0;
-
-				foreach (var dato in datosProducto)
-				{
-					var textoDato = "";
-
-					if (_listaColumnasParaVer != null && _listaColumnasParaVer[i] == "1")
-					{
-						textoDato += _nombresColumnas[i] + ": " + dato + '\n';
-						datosParaVer.Add(textoDato);
-					}
-					if (_listaColumnasInventario != null && _listaColumnasInventario[i] == "1")
-					{
-						stockTotalProducto += Convert.ToDecimal(dato);
-					}
-                    if (_nombresColumnas[i]?.ToLower() == "stock bajo")
-                    {
-						nivelStockMinimo = Convert.ToDecimal(dato);
-					}
-
-					i += 1;
-				}
-
-				bool tieneBajoStock = stockTotalProducto <= nivelStockMinimo;
-				var producto = new ClaseProducto(datosProducto[0], datosParaVer, esTeclaPar, tieneBajoStock);
-				listaProductos.Add(producto);
+				// Mostraremos solo las sig. columnas de la planilla: Fecha, Cliente, Detalle, Fecha entrega, Estado, Usuario
+				var pedido = new ClasePedido(
+					filaPedido[0],
+					filaPedido[1],
+					filaPedido[2],
+					filaPedido[3],
+					filaPedido[4],
+					filaPedido[5],
+					filaPedido[6],
+					filaPedido[7],
+					filaPedido[8]
+				);
+				listaPedidos.Add(pedido);
 				esTeclaPar = !esTeclaPar;
 			}
-			return listaProductos;
+			return listaPedidos;
 		}
 
-		private void ConstruirVistaDeLista(IReadOnlyCollection<string[]> productos)
+		private Label ObtenerEtiquetaTitulo(string texto, int ancho)
+        {
+			return new Label
+			{
+				Text = texto,
+				FontSize = 13,
+				HorizontalOptions = LayoutOptions.CenterAndExpand,
+				FontAttributes = FontAttributes.Bold,
+				TextColor = Color.Black,
+				VerticalTextAlignment = TextAlignment.Center,
+				HorizontalTextAlignment = TextAlignment.Center,
+				VerticalOptions = LayoutOptions.Center,
+				WidthRequest = ancho
+			};
+		}
+
+		private Label ObtenerEtiquetaDato(string campo, int ancho)
+        {
+			var etiquetaDato = new Label
+			{
+				FontSize = 14,
+				TextColor = Color.FromHex("#1D1D1B"),
+				VerticalOptions = LayoutOptions.CenterAndExpand,
+				WidthRequest = ancho,
+				Margin = 3
+			};
+			etiquetaDato.SetBinding(Label.TextProperty, campo);
+			return etiquetaDato;
+		}
+
+		private BoxView ObtenerSeparado(int altoTeja)
+        {
+			return new BoxView
+			{
+				WidthRequest = 2,
+				BackgroundColor = Color.FromHex("#FFFFFF"),
+				HeightRequest = altoTeja - 5
+			};
+		}
+
+		private void ConstruirVistaDeLista(IReadOnlyCollection<string[]> pedidos)
 		{
-			var listaProductos = ObtenerListaProductos(productos);
+			_listaPedidos = ObtenerListaPedidos(pedidos);
 
-			var anchoColumnaNombreProd = App.AnchoRetratoDePantalla * 0.55;
-			var anchoColumnaDatosProd = App.AnchoRetratoDePantalla - (anchoColumnaNombreProd + 2); // 2 por el ancho del divisor
+			var anchoColumna = (App.AnchoRetratoDePantalla / 4) - 2; // - 2 por el divisor (2px)
 
-			var titulo = _nombresColumnas != null && _nombresColumnas.Length > 1 ? _nombresColumnas[1].ToUpper() : "PRODUCTO";
 			var encabezado = new StackLayout
 			{
 				Orientation = StackOrientation.Horizontal,
 				VerticalOptions = LayoutOptions.Start,
 				BackgroundColor = Color.FromHex("#C0C0C0"),
-				HeightRequest = productos.Count <= 25 ? 35 : 50,
+				HeightRequest = pedidos.Count <= 25 ? 35 : 50,
+				Padding = 3,
 				Children =
-								{
-									new Label
-									{
-										Text = "  " + titulo,
-										FontSize = 13,
-										HorizontalOptions = LayoutOptions.Center,
-										FontAttributes = FontAttributes.Bold,
-										TextColor = Color.Black,
-										VerticalTextAlignment = TextAlignment.Center,
-										VerticalOptions = LayoutOptions.Center,
-										WidthRequest = anchoColumnaNombreProd
-									},
-									new Label
-									{
-										Text = "       INFO",
-										FontSize = 13,
-										HorizontalOptions = LayoutOptions.End,
-										FontAttributes = FontAttributes.Bold,
-										TextColor = Color.Black,
-										VerticalTextAlignment = TextAlignment.Center,
-										VerticalOptions = LayoutOptions.Center,
-										WidthRequest = anchoColumnaDatosProd
-									}
-								}
+					{
+						ObtenerEtiquetaTitulo("Fecha", (int)anchoColumna),
+						ObtenerEtiquetaTitulo("Cliente", (int)anchoColumna),
+						ObtenerEtiquetaTitulo("Fecha Entrega", (int)anchoColumna),
+						ObtenerEtiquetaTitulo("Estado", (int)anchoColumna)
+					}
 			};
 
-			var altoTeja = (_listaColumnasParaVer?.Where(x => x == "1").Count() ?? 0) * 17;
-
+			var altoTeja = 60;
 			var vista = new ListView
 			{
 				RowHeight = altoTeja,
 				VerticalOptions = LayoutOptions.StartAndExpand,
 				HorizontalOptions = LayoutOptions.Fill,
-				ItemsSource = listaProductos,
+				ItemsSource = _listaPedidos,
 				ItemTemplate = new DataTemplate(() =>
 				{
-					var nombreProducto = new Label
-					{
-						FontSize = 16,
-						TextColor = Color.FromHex("#1D1D1B"),
-						FontAttributes = FontAttributes.Bold,
-						VerticalOptions = LayoutOptions.CenterAndExpand,
-						WidthRequest = anchoColumnaNombreProd,
-						Margin = 3
-					};
-					nombreProducto.SetBinding(Label.TextProperty, "Nombre");
-
-					var datos = new Label
-					{
-						FontSize = 15,
-						TextColor = Color.FromHex("#1D1D1B"),
-						VerticalOptions = LayoutOptions.CenterAndExpand,
-						WidthRequest = anchoColumnaDatosProd
-					};
-					datos.SetBinding(Label.TextProperty, "Datos");
-
-					var separador = new BoxView
-					{
-						WidthRequest = 2,
-						BackgroundColor = Color.FromHex("#FFFFFF"),
-						HeightRequest = altoTeja - 5
-					};
-
 					var tecla = new StackLayout
 					{
-						Padding = 2,
+						Padding = 3,
 						Orientation = StackOrientation.Horizontal,
-						Children = { nombreProducto, separador, datos }
+						Children = {
+							ObtenerEtiquetaDato("Fecha", (int)anchoColumna),
+							ObtenerSeparado(altoTeja),
+							ObtenerEtiquetaDato("Cliente", (int)anchoColumna),
+							ObtenerSeparado(altoTeja),
+							ObtenerEtiquetaDato("FechaEntrega", (int)anchoColumna),
+							ObtenerSeparado(altoTeja),
+							ObtenerEtiquetaDato("Estado", (int)anchoColumna)
+						}
 					};
 					tecla.SetBinding(BackgroundColorProperty, "ColorFondo");
 
@@ -445,7 +340,7 @@ namespace AyudanteNewen.Vistas
 					{
 						if (_ultimoItemSeleccionado != null)
 							_ultimoItemSeleccionado.View.BackgroundColor = _ultimoColorSeleccionado;
-						IrAlProducto(((ClaseProducto)((ViewCell)sender).BindingContext).Id);
+						IrAlPedido(((ClasePedido)((ViewCell)sender).BindingContext).Id);
 						_ultimoColorSeleccionado = celda.View.BackgroundColor;
 						celda.View.BackgroundColor = Color.Silver;
 						_ultimoItemSeleccionado = (ViewCell)sender;
@@ -455,37 +350,37 @@ namespace AyudanteNewen.Vistas
 				})
 			};
 
-			ContenedorTabla.Children.Clear();
-			ContenedorTabla.Children.Add(encabezado);
-			ContenedorTabla.Children.Add(vista);
+			Device.BeginInvokeOnMainThread(() =>
+			{
+				ContenedorTabla.Children.Clear();
+				ContenedorTabla.Children.Add(encabezado);
+				ContenedorTabla.Children.Add(vista);
+			});
 		}
 
-		private void FijarProductosYBuscador(List<string[]> productos)
+		private void FijarPedidosYBuscador(List<string[]> pedidos)
 		{
-			//Si hay más de 25 productos se muestra el buscador
-			if (productos.Count <= 25) return;
-			//Almacena la lista de productos en la variable global que usará el buscador
-			_productos = productos;
-			Buscador.IsVisible = true;
-			Buscador.Text = "";
+			// Si hay más de 25 pedidos se muestra el buscador
+			if (pedidos.Count <= 25) return;
+			// Almacena la lista de pedidos en la variable global que usará el buscador
+			_pedidos = pedidos;
 		}
 
 		private void RefrescarUIGrilla()
 		{
-			//Se quita la grilla para recargarla.
+			// Se quita la grilla para recargarla.
 			ContenedorTabla.Children.Clear();
-			Buscador.IsVisible = false;
 			ContenedorTabla.Children.Add(_indicadorActividad);
 		}
 
-		private void RefrescarDatos(bool refrescarLugaresRelaciones = false)
+		private void RefrescarDatos()
 		{
 			RefrescarUIGrilla();
 
 			if (CuentaUsuario.ObtenerAccesoDatos() == "G")
-				ObtenerDatosProductosDesdeHCG(refrescarLugaresRelaciones); //Hoja de cálculo de Google
+				ObtenerDatosPedidosDesdeHCG();
 			else
-				ObtenerProductosDesdeBD(); //Base de Datos
+				ObtenerPedidosDesdeBD();
 		}
 
 		#endregion
@@ -493,171 +388,82 @@ namespace AyudanteNewen.Vistas
 		#region Eventos
 
 		[Android.Runtime.Preserve]
-		private void AccederDatos()
-		{
-			_accesoDatos.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
-			{
-				var paginaAccesoDatos = new AccesoDatos();
-				Navigation.PushAsync(paginaAccesoDatos, true);
-				_accesoDatos.Opacity = 1f;
-				return false;
-			});
-		}
-
-		[Android.Runtime.Preserve]
-		private void RefrescarDatos()
+		private void AccionRefrescarDatos()
 		{
 			_refrescar.Opacity = 0.5f;
 			Device.StartTimer(TimeSpan.FromMilliseconds(100), () =>
 			{
-				RefrescarDatos(true);
+				RefrescarDatos();
 				_refrescar.Opacity = 1f;
 				return false;
 			});
 		}
 
-		private async void RefrescarLugCompVtas_RelacionInsProd()
-		{
-			if (CuentaUsuario.ValidarTokenDeGoogle())
-			{
-				new LugaresCompraVenta().ObtenerActualizarLugares(_linkHojaConsulta, _servicio);
-				new RelacionesInsumoProducto().ObtenerActualizarRelaciones(_linkHojaConsulta, _servicio);
-			}
-			else
-			{
-				//Si se quedó la pantalla abierta un largo tiempo y se venció el token, se cierra y refresca el token
-				var paginaAuntenticacion = new PaginaAuntenticacion(true);
-				Navigation.InsertPageBefore(paginaAuntenticacion, this);
-				await Navigation.PopAsync();
-			}
-		}
-
 		[Android.Runtime.Preserve]
-		private void AbrirPaginaEscaner()
+		private async void CrearPedido()
 		{
-			_escanearCodigo.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
-			{
-				var paginaEscaner = new ZXingScannerPage();
-
-				paginaEscaner.OnScanResult += (result) =>
-				{
-					// Detiene el escaner
-					paginaEscaner.IsScanning = false;
-
-					//Hace autofoco, particularmente para los códigos de barra
-					var ts = new TimeSpan(0, 0, 0, 3, 0);
-					Device.StartTimer(ts, () =>
-					{
-						if (paginaEscaner.IsScanning)
-							paginaEscaner.AutoFocus();
-						return true;
-					});
-
-					// Cierra la página del escaner y llama a la página del producto
-					Device.BeginInvokeOnMainThread(() =>
-					{
-						Navigation.PopModalAsync();
-						IrAlProducto(result.Text);
-					});
-				};
-
-				// Abre la página del escaner
-				Navigation.PushModalAsync(paginaEscaner);
-
-				_escanearCodigo.Opacity = 1f;
-				return false;
-			});
-
+			await Navigation.PushAsync(new Pedido(null, _nombresColumnas, _servicio), true);
 		}
 
-		[Android.Runtime.Preserve]
-		private void FiltrarProductos(object sender, EventArgs args)
-		{
-			if (Buscador.Text.Length > 2 || Buscador.Text.Length == 0)
-			{
-				//Se quita la grilla para recargarla.
-				ContenedorTabla.Children.Clear();
-				var productos = new List<string[]>();
-				foreach (var producto in _productos)
-				{
-					if (producto[1].ToLower().Contains(Buscador.Text.ToLower()))
-						productos.Add(producto);
-				}
-
-				LlenarGrillaDeProductos(productos, true);
-			}
-		}
-
-		[Android.Runtime.Preserve]
-		private void CargarHoja(object sender, EventArgs args)
-		{
-			Device.StartTimer(TimeSpan.FromMilliseconds(100), () =>
-			{
-				_linkHojaConsulta = CuentaUsuario.CambiarHojaSeleccionada(_listaHojas.Items[_listaHojas.SelectedIndex]);
-				_listaColumnasParaVer = CuentaUsuario.ObtenerColumnasParaVer().Split(',');
-				_listaColumnasInventario = CuentaUsuario.ObtenerColumnasInventario().Split(',');
-
-				RefrescarDatos(true);
-				return false;
-			});
-		}
-
-		protected override async void OnSizeAllocated(double ancho, double alto)
-		{
-			base.OnSizeAllocated(ancho, alto);
-			if (_anchoActual == ancho) return;
-			if (ancho > alto)
-			{
-				if (_anchoActual != 0)
-					await GrupoEncabezado.TranslateTo(0, -100, 1000);
-				GrupoEncabezado.IsVisible = false;
-			}
-			else
-			{
-				GrupoEncabezado.IsVisible = true;
-				if (_anchoActual != 0)
-					await GrupoEncabezado.TranslateTo(0, 0, 1000);
-			}
-			_anchoActual = ancho;
-		}
-
-		//Cuando carga la página y cuando vuelve de registrar un movimiento.
+		// Cuando carga la página.
 		protected override void OnAppearing()
 		{
-			RefrescarDatos(_esCargaInicial);
-			_esCargaInicial = false; //Si era carga inicial venía en true, si no ya estaba en false
+			RefrescarDatos();
 		}
 
 		#endregion
-
 	}
 
-	//Clase Producto: utilizada para armar la lista scrolleable de productos
-	//[Android.Runtime.Preserve]
-	//public class ClaseProducto
-	//{
-	//	[Android.Runtime.Preserve]
-	//	public ClaseProducto(string id, IList<string> datos, bool esTeclaPar, bool tieneBajoStock)
-	//	{
-	//		Id = id;
-	//		Nombre = datos[0];
-	//		Datos = string.Join("", datos.Skip(1).Take(datos.Count));
-	//		ColorFondo = tieneBajoStock
-	//			? Color.FromHex("#FE6161")
-	//			: esTeclaPar
-	//				? Color.FromHex("#EDEDED")
-	//				: Color.FromHex("#E2E2E1");
-	//	}
+    //Clase Pedido: utilizada para armar la lista scrolleable de pedidos
+    [Android.Runtime.Preserve]
+    public class ClasePedido
+    {
+        [Android.Runtime.Preserve]
+        public ClasePedido(
+			string idPedido,
+			string fecha,
+			string idCliente,
+			string cliente,
+			string detallePedido,
+			string fechaEntrega,
+			string estado,
+			string usuario,
+			string comentario
+		)
+        {
+            Id = idPedido;
+			Fecha = fecha;
+			IdCliente = idCliente;
+			Cliente = cliente;
+            Detalle = detallePedido;
+			FechaEntrega = fechaEntrega;
+			Estado = estado;
+			Usuario = usuario;
+			Comentario = comentario;
+			ColorFondo = ("cancelado, completo").Contains(estado.ToLower())
+				? Color.FromHex("#E2E2E1")
+				: Color.FromHex("#32CEF9");
+        }
 
-	//	[Android.Runtime.Preserve]
-	//	public string Id { get; }
-	//	[Android.Runtime.Preserve]
-	//	public string Nombre { get; }
-	//	[Android.Runtime.Preserve]
-	//	public string Datos { get; }
-	//	[Android.Runtime.Preserve]
-	//	public Color ColorFondo { get; }
-	//}
+		[Android.Runtime.Preserve]
+        public string Id { get; }
+		[Android.Runtime.Preserve]
+		public string Fecha { get; }
+		[Android.Runtime.Preserve]
+        public string IdCliente { get; }
+		[Android.Runtime.Preserve]
+		public string Cliente { get; }
+		[Android.Runtime.Preserve]
+        public string Detalle { get; }
+		[Android.Runtime.Preserve]
+		public string FechaEntrega { get; }
+		[Android.Runtime.Preserve]
+		public string Estado { get; }
+		[Android.Runtime.Preserve]
+		public string Usuario { get; }
+		[Android.Runtime.Preserve]
+		public string Comentario { get; }
+		[Android.Runtime.Preserve]
+        public Color ColorFondo { get; }
+    }
 }

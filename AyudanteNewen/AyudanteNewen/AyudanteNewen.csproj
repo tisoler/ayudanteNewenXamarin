@@ -39,7 +39,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Clases\Auxiliar.cs" />
     <Compile Include="Clases\CuentaUsuario.cs" />
+    <Compile Include="Clases\DetallePedido.cs" />
     <Compile Include="Clases\LugaresCompraVenta.cs" />
     <Compile Include="Clases\RelacionInsumoProducto.cs" />
     <Compile Include="Servicios\ServiciosGoogle.cs" />
