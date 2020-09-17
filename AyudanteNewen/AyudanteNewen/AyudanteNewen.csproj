@@ -43,6 +43,7 @@
     <Compile Include="Clases\CuentaUsuario.cs" />
     <Compile Include="Clases\DetallePedido.cs" />
     <Compile Include="Clases\LugaresCompraVenta.cs" />
+    <Compile Include="Clases\Pedido.cs" />
     <Compile Include="Clases\RelacionInsumoProducto.cs" />
     <Compile Include="Servicios\ServiciosGoogle.cs" />
     <Compile Include="Vistas\ConfiguracionDrive\ListaHojasPtosVtaGoogle.xaml.cs">

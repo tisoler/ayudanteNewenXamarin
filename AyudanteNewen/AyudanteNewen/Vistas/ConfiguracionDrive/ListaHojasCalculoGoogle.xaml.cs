@@ -6,6 +6,8 @@ using AyudanteNewen.Clases;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AyudanteNewen.Servicios;
+using System;
+using System.Linq;
 
 namespace AyudanteNewen.Vistas
 {
@@ -66,14 +68,18 @@ namespace AyudanteNewen.Vistas
 						return;
 					}
 
-					//Se almacena el link para recobrar los datos de stock de la hoja cuando ingrese nuevamente.
+					// Se almacena el link para recobrar los datos de stock de la hoja cuando ingrese nuevamente.
 					CuentaUsuario.AlmacenarLinkHojaConsulta(linkHoja);
 					CuentaUsuario.AlmacenarNombreDeHoja(linkHoja, nombreHoja);
 
-					//Se ha seleccionado una hoja principal (de nombre "Productos App"), se valida si tenemos que habilitar la funcionalidad de Relación Insumo - Producto
-					//Ocurre si existe en el libro una hoja de nombre "Costos variables"
+					// 1 - Se ha seleccionado una hoja principal (de nombre "Productos App"), se valida si tenemos que habilitar la funcionalidad de Relación Insumo - Producto
+					// Ocurre si existe en el libro una hoja de nombre "Costos variables".
+					// 2 - Almacena las columnas de Producto - Se usarán en la pantalla Pedido (para almacenar movimientos de stock desde el detalle de pedido).
 					if (nombreHoja == "Productos App")
+					{
 						ValidarHabilitacionRelacionesInsumoProducto(linkHoja);
+						AlmacnarColumnasProducto(linkHoja);
+					}
 
 					pagina = new ListaHojasHistoricoGoogle(_servicio, _listaHojas);
 					await Navigation.PushAsync(pagina, true);
@@ -81,7 +87,19 @@ namespace AyudanteNewen.Vistas
 			}
 		}
 
-		private void ValidarHabilitacionRelacionesInsumoProducto(string linkHoja)
+        private void AlmacnarColumnasProducto(string linkHoja)
+        {
+			var columnasProducto = new List<string>();
+			var celdas = new ServiciosGoogle().ObtenerCeldasDeUnaHoja(linkHoja, _servicio);
+			foreach (CellEntry celda in celdas.Entries)
+			{
+				if (celda.Row == 1) columnasProducto.Add(celda.Value);
+				else break;
+			}
+			CuentaUsuario.AlmacenarColumnasProducto(string.Join(",", columnasProducto));
+		}
+
+        private void ValidarHabilitacionRelacionesInsumoProducto(string linkHoja)
 		{
 			foreach (var datosHoja in _listaHojas)
 			{

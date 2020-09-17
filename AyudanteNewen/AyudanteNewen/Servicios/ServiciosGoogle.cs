@@ -44,18 +44,18 @@ namespace AyudanteNewen.Servicios
 			return servicio.Query(consulta);
 		}
 
-		public string ObtenerHistorico(CellEntry celdaMovimiento, double cantidad, double precio, string lugar, CellEntry[] producto,
+		public string ObtenerHistorico(uint columnaCeldaMovimiento, double cantidad, double precio, string lugar, string[] producto,
 			string[] nombresColumnas, string[] listaColumnasInventario, string comentario)
 		{
 			// Abre la fila
 			var fila = "<entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:gsx=\"http://schemas.google.com/spreadsheets/2006/extended\">";
-														// Agrega la fecha
+			// Agrega la fecha
 			fila += "<gsx:fecha>" + DateTime.Now.ToString("dd-MM-yyyy") + "</gsx:fecha>";
 			// Agrega los valores del producto
 			for (var i = 0; i < nombresColumnas.Length; i++)
 			{
-				var valor = producto[i].Value; //Si la columna no es de stock o es la que recibió el movimiento se inserta su valor en el histórico
-				if (listaColumnasInventario[i] == "1" && i + 1 != celdaMovimiento.Column)
+				var valor = producto[i]; //Si la columna no es de stock o es la que recibió el movimiento se inserta su valor en el histórico
+				if (listaColumnasInventario[i] == "1" && i != columnaCeldaMovimiento)
 					valor = "-"; //Si la columna es de stock pero no la que recibió el movimiento el valor para el histórico es "-"
 
 				var columna = Regex.Replace(nombresColumnas[i].ToLower(), @"\s+", "");
@@ -89,18 +89,18 @@ namespace AyudanteNewen.Servicios
 			return fila;
 		}
 
-		public void EnviarMovimiento(SpreadsheetsService servicio, CellEntry celdaMovimiento, double cantidad, double precio, string puntoVenta, string comentario,
-			CellEntry[] producto, string[] nombresColumnas, string[] listaColumnasInventario, string url)
+		public void EnviarMovimiento(SpreadsheetsService servicio, uint columnaCeldaMovimiento, double cantidad, double precio, string puntoVenta, string comentario,
+			string[] producto, string[] nombresColumnas, string[] listaColumnasInventario, string url)
 		{
-			var movimiento = AgregarHistorico(celdaMovimiento, cantidad, precio, puntoVenta, producto, nombresColumnas, listaColumnasInventario, comentario);
+			var movimiento = AgregarHistorico(columnaCeldaMovimiento, cantidad, precio, puntoVenta, producto, nombresColumnas, listaColumnasInventario, comentario);
 			EnviarFilas(movimiento, servicio, url);
 		}
 
-		private string AgregarHistorico(CellEntry celdaMovimiento, double cantidad, double precio, string puntoVenta, CellEntry[] producto,
+		private string AgregarHistorico(uint columnaCeldaMovimiento, double cantidad, double precio, string puntoVenta, string[] producto,
 			string[] nombresColumnas, string[] listaColumnasInventario, string comentario)
 		{
-			return ObtenerHistorico(celdaMovimiento, cantidad, precio, puntoVenta, producto, nombresColumnas, listaColumnasInventario, comentario);
-		}
+			return ObtenerHistorico(columnaCeldaMovimiento, cantidad, precio, puntoVenta, producto, nombresColumnas, listaColumnasInventario, comentario);
+		} 
 
 		private static void EnviarFilas(string filas, SpreadsheetsService servicio, string url)
 		{
@@ -113,9 +113,9 @@ namespace AyudanteNewen.Servicios
 			//servicio.StreamSend(new Uri(url), filaEnStream, GDataRequestType.Batch,  tipoDelContenido, "", "");
 		}
 
-		internal void InsertarMovimientosRelaciones(SpreadsheetsService servicio, double cantidad, CellEntry[] producto)
+		internal void InsertarMovimientosRelaciones(SpreadsheetsService servicio, double cantidad, string[] producto)
 		{
-			//Valida que sea la hoja de productos a la que se le asocia la relaciones
+			// Valida que sea la hoja de productos a la que se le asocia la relaciones
 			var paginaRelaciones = CuentaUsuario.RecuperarValorDeCuentaLocal(CuentaUsuario.ObtenerLinkHojaConsulta() + "|relacionesInsumoProducto");
 			if (paginaRelaciones == null) return;
 
@@ -133,37 +133,40 @@ namespace AyudanteNewen.Servicios
 			foreach (var arreglo in relacionesArreglo)
 			{
 				var relacion = arreglo.Split('|');
-				if (relacion[0] == producto[0].Value) //Compara código de prod de la relación y del producto seleccionado
-					insumosRelacion.Add(relacion[1], relacion[2].Replace('.', ',')); //Inserta el código del insumo de la relación
+				// Compara código de prod de la relación y del producto seleccionado
+				if (relacion[0] == producto[0])
+					insumosRelacion.Add(relacion[1], relacion[2].Replace('.', ',')); // Inserta el código del insumo de la relación
 			}
 
-			//Obtener el arreglo del insumo para actualizar
+			// Obtener el arreglo del insumo para actualizar
 			var nombresColumnas = new string[celdas.ColCount.Count];
-			var insumoSeleccionado = new CellEntry[celdas.ColCount.Count];
+			var insumoSeleccionado = new string[celdas.ColCount.Count];
 			var fila = -1;
 			double cantInsumoRelacion = 0;
 			var celdaMovimiento = new CellEntry();
-			//var movimientos = "";
+			// var movimientos = "";
 			foreach (CellEntry celda in celdas.Entries)
 			{
 				if (celda.Row != 1)
 				{
-					if (celda.Column == 1 && insumosRelacion.ContainsKey(celda.Value)) //Compara código de insumo con insumo de relación
+					// Compara código de insumo con insumo de relación
+					if (celda.Column == 1 && insumosRelacion.ContainsKey(celda.Value))
 					{
 						fila = (int)celda.Row;
 						double.TryParse(insumosRelacion[celda.Value], NumberStyles.AllowDecimalPoint, new CultureInfo("es-ES"), out cantInsumoRelacion);
 					}
 					if (celda.Row == fila)
-						insumoSeleccionado.SetValue(celda, (int)celda.Column - 1); //Va recuperando los valores del Insumo
+						insumoSeleccionado.SetValue(celda, (int)celda.Column - 1); // Va recuperando los valores del Insumo
 
-					if (columnasInventario[(int)celda.Column - 1] == "1") //Toma celda de stock del insumo para descontar (si tiene 1 toma esa, si tiene más de 1 toma la última)
+					// Toma celda de stock del insumo para descontar (si tiene 1 toma esa, si tiene más de 1 toma la última)
+					if (columnasInventario[(int)celda.Column - 1] == "1")
 						celdaMovimiento = celda;
 
-					//Si encontró producto (fila > -1) y ya pasó alpróximo producto (celda.Row > fila) o es el último producto (celda.Column == _celdas.ColCount.Count)
+					// Si encontró producto (fila > -1) y ya pasó alpróximo producto (celda.Row > fila) o es el último producto (celda.Column == _celdas.ColCount.Count)
 					if (fila > -1 && (celda.Row > fila || celda.Column == celdas.ColCount.Count))
 					{
-						//Se agregan filas de movimientos de insumos para enviar al final
-						var movimiento = AgregarHistorico(celdaMovimiento, -1 * cantidad * cantInsumoRelacion, 0, "-", insumoSeleccionado, nombresColumnas, columnasInventario,
+						// Se agregan filas de movimientos de insumos para enviar al final
+						var movimiento = AgregarHistorico(celdaMovimiento.Column, -1 * cantidad * cantInsumoRelacion, 0, "-", insumoSeleccionado, nombresColumnas, columnasInventario,
 							"Disminución por producción.");
 						EnviarFilas(movimiento, servicio, linkHistoricoInsumos);
 						fila = -1;

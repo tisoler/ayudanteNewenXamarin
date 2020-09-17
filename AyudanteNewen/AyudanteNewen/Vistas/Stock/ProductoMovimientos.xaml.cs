@@ -19,20 +19,12 @@ namespace AyudanteNewen.Vistas
 		private ActivityIndicator _indicadorActividad;
 		private Image _listo;
 
-		public ProductoMovimientos(IReadOnlyCollection<CellEntry> producto, SpreadsheetsService servicio)
+		public ProductoMovimientos(string[] producto, SpreadsheetsService servicio)
 		{
 			InitializeComponent();
 			_servicio = servicio;
 			_servicioGoogle = new ServiciosGoogle();
-
-			//Almacenar el arreglo de strings para cargar el producto en pantalla
-			_productoString = new string[producto.Count];
-			var i = 0;
-			foreach (var celda in producto)
-			{
-				_productoString.SetValue(celda.InputValue, i);
-				i += 1;
-			}
+			_productoString = producto;
 
 			InicializarValoresGenerales();
 			ObtenerDatosMovimientosDesdeHCG();

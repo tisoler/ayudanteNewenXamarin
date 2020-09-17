@@ -81,17 +81,12 @@ namespace AyudanteNewen.Vistas
 
 			foreach (CellEntry celda in _celdas.Entries)
 			{
-				if (celda.Row == 1)
-				{
-					_columnas.Add(celda);
-				}
-				else
-				{
-					break;
-				}
+				if (celda.Row == 1)	_columnas.Add(celda);
+				else break;
 			}
 
-			_listaColumnas = Enumerable.Repeat(1, _columnas.Count).ToArray(); //El arreglo de columnas para ver, todas con valor inicial en 1
+			// El arreglo de columnas para ver, todas con valor inicial en 1
+			_listaColumnas = Enumerable.Repeat(1, _columnas.Count).ToArray();
 			LlenarGrillaColumnasParaVer(_columnas);
 		}
 

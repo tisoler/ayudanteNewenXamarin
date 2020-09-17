@@ -1,6 +1,7 @@
 ﻿
 
 using Android.Text;
+using System;
 using System.Collections.Generic;
 using Xamarin.Forms;
 
@@ -20,21 +21,26 @@ namespace AyudanteNewen.Clases
                 propiedades = objetoJson.Replace(", ", "|").Split('|');
                 var lineaDetalle = new DetallePedido();
                 string[] campoValor;
+                var valor = "";
                 foreach(var propiedad in propiedades)
                 {
-                    campoValor = propiedad.Split(':');
+                    campoValor = propiedad?.Split(':');
+                    valor = campoValor[1]?.Trim().Trim('\'');
                     switch (campoValor[0].Trim()) {
                         case "idProducto":
-                            lineaDetalle.IdProducto = campoValor[1].Trim();
+                            lineaDetalle.IdProducto = valor;
                             break;
                         case "nombreProducto":
-                            lineaDetalle.NombreProducto = campoValor[1].Trim();
+                            lineaDetalle.NombreProducto = valor;
                             break;
                         case "cantidad":
-                            lineaDetalle.Cantidad = campoValor[1].Trim();
+                            lineaDetalle.Cantidad = valor;
                             break;
                         case "precio":
-                            lineaDetalle.Precio = campoValor[1].Trim();
+                            lineaDetalle.Precio = valor;
+                            break;
+                        case "columnaStockElegido":
+                            lineaDetalle.ColumnaStockElegido = Convert.ToUInt32(valor) - 1;
                             break;
                     }
                 }

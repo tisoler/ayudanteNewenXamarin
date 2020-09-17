@@ -15,9 +15,8 @@
                 </StackLayout>
             </StackLayout>
             <ScrollView Orientation="Vertical" VerticalOptions="FillAndExpand" HorizontalOptions="Fill">
-			    <StackLayout x:Name="ContenedorProducto" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0"></StackLayout>
+                <StackLayout x:Name="ContenedorProducto" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0"></StackLayout>
             </ScrollView>
-			<StackLayout x:Name="ContenedorBotones" Spacing="0" Padding="0" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End"></StackLayout>
         </StackLayout>
     </ContentPage.Content>
 

@@ -67,7 +67,7 @@ namespace AyudanteNewen.Vistas
 		private void InicializarValoresGenerales()
 		{
 			var columnasInventario = CuentaUsuario.ObtenerColumnasInventario();
-			_listaColumnasInventario = !string.IsNullOrEmpty(columnasInventario) ? _listaColumnasInventario = columnasInventario.Split(',') : null;
+			_listaColumnasInventario = !string.IsNullOrEmpty(columnasInventario) ? columnasInventario.Split(',') : null;
 
 			SombraEncabezado.Source = ImageSource.FromResource(App.RutaImagenSombraEncabezado);
 			IndicadorBajoStock.IsVisible = EsBajoStock();
@@ -492,7 +492,7 @@ namespace AyudanteNewen.Vistas
 			_movimientos.Opacity = 0.5f;
 			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
 			{
-				Navigation.PushAsync(new ProductoMovimientos(_producto, _servicio), true);
+				Navigation.PushAsync(new ProductoMovimientos(_productoString, _servicio), true);
 				_movimientos.Opacity = 1f;
 				return false;
 			});
@@ -515,14 +515,14 @@ namespace AyudanteNewen.Vistas
 			_mensaje = "Ha ocurrido un error mientras se guardaba el movimiento.";
 			var servicioGoogle = new ServiciosGoogle();
 			var grabo = false;
-			foreach (var celda in _producto)
+			for (uint columnaCelda = 0; columnaCelda < _productoString.Length; columnaCelda++)
 			{
-				if (_listaColumnasInventario[(int)celda.Column - 1] == "1")
+				if (_listaColumnasInventario[columnaCelda] == "1")
 				{
-					var multiplicador = _signoPositivo[(int)celda.Column - 1] ? 1 : -1;
-					var cantidad = _cantidades[(int)celda.Column - 1];
-					var precio = _precios[(int)celda.Column - 1];
-					var lugar = _listaLugares != null ? _lugares[(int)celda.Column - 1] : "No tiene configurado.";
+					var multiplicador = _signoPositivo[columnaCelda] ? 1 : -1;
+					var cantidad = _cantidades[columnaCelda];
+					var precio = _precios[columnaCelda];
+					var lugar = _listaLugares != null ? _lugares[columnaCelda] : "No tiene configurado.";
 
 					if (cantidad != 0)
 					{
@@ -533,11 +533,11 @@ namespace AyudanteNewen.Vistas
 								precio = multiplicador * cantidad;
 
 							//Ingresa el movimiento de existencia (entrada - salida) en la tabla principal
-							servicioGoogle.EnviarMovimiento(_servicio, celda, multiplicador * cantidad, precio, lugar, _comentario, _producto, _nombresColumnas,
+							servicioGoogle.EnviarMovimiento(_servicio, columnaCelda, multiplicador * cantidad, precio, lugar, _comentario, _productoString, _nombresColumnas,
 								_listaColumnasInventario, CuentaUsuario.ObtenerLinkHojaHistoricos());
 							//Si es página principal y tiene las relaciones insumos - productos, ingresa los movimientos de insumos
 							if (multiplicador == 1) //Si es ingreso positivo
-								servicioGoogle.InsertarMovimientosRelaciones(_servicio, cantidad, _producto);
+								servicioGoogle.InsertarMovimientosRelaciones(_servicio, cantidad, _productoString);
 
 							grabo = true;
 						}

@@ -7,25 +7,26 @@ using AyudanteNewen.Servicios;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 
 namespace AyudanteNewen.Vistas
 {
 	public partial class Pedido
 	{
-		private readonly ClasePedido _pedido;
+		private readonly Clases.Pedido _pedido;
 		private readonly SpreadsheetsService _servicio;
 		private string _mensaje = "";
 		private ActivityIndicator _indicadorActividad;
-		private Image _volver;
-		private Image _guardarCambios;
+		private CellFeed _celdas;
+		private string[] _listaColumnasInventario;
 
-		public Pedido(ClasePedido pedido, string[] nombres, SpreadsheetsService servicio)
+		public Pedido(Clases.Pedido pedido, SpreadsheetsService servicio, CellFeed celdas = null)
 		{
 			InitializeComponent();
 			InicializarValoresGenerales();
 			_pedido = pedido;
 			_servicio = servicio;
+			_celdas = celdas;
 
 			ConstruirVistaDePedido();
 		}
@@ -34,7 +35,8 @@ namespace AyudanteNewen.Vistas
 		{
 			SombraEncabezado.Source = ImageSource.FromResource(App.RutaImagenSombraEncabezado);
 
-			ConfigurarBotones();
+			var columnasInventario = CuentaUsuario.ObtenerColumnasInventario();
+			_listaColumnasInventario = !string.IsNullOrEmpty(columnasInventario) ? columnasInventario.Split(',') : null;
 
 			_indicadorActividad = new ActivityIndicator
 			{
@@ -44,27 +46,6 @@ namespace AyudanteNewen.Vistas
 			};
 			_indicadorActividad.SetBinding(IsVisibleProperty, "IsBusy");
 			_indicadorActividad.SetBinding(ActivityIndicator.IsRunningProperty, "IsBusy");
-		}
-
-        private void ConfigurarBotones()
-		{
-			_volver = App.Instancia.ObtenerImagen(TipoImagen.BotonVolver);
-			_volver.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(Volver),
-					NumberOfTapsRequired = 1
-				}
-			);
-			_guardarCambios = App.Instancia.ObtenerImagen(TipoImagen.BotonGuardarCambios);
-			_guardarCambios.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(EventoGuardarCambios),
-					NumberOfTapsRequired = 1
-				}
-			);
-
-			ContenedorBotones.Children.Add(_volver);
-			ContenedorBotones.Children.Add(_guardarCambios);
 		}
 
 		private Label ObtenerEtiquetaProp(string texto, int anchoEtiqueta)
@@ -204,10 +185,116 @@ namespace AyudanteNewen.Vistas
 			return vista;
 		}
 
+		private View BuscarControlEnHijos(StackLayout controlPadre, string id)
+        {
+			foreach(var control in controlPadre.Children)
+            {
+				if (control.StyleId == id) return control;
+				if (control.GetType() == typeof(StackLayout))
+				{
+					var res = BuscarControlEnHijos((StackLayout)control, id);
+					if (res != null) return res;
+				}
+			}
+			return null;
+        }
+
+		private async void CambiarEstadoPedido(object sender, EventArgs e)
+		{
+			if (!await DisplayAlert("Pedido", "¿Confirma el cambio de estado?", "Sí", "No")) return;
+			var boton = (Button)sender;
+			var nuevoEstado = boton.StyleId;
+
+			var descontarStock = nuevoEstado == "finalizado" && await DisplayAlert("Pedido", "¿Desea descontar el stock?", "Sí", "No");
+
+			await TareaActualizarEstado(nuevoEstado, descontarStock);
+
+			await Navigation.PopAsync();
+			await DisplayAlert("Pedido", _mensaje, "Listo");
+		}
+
+		private View ObtenerControlEstado(string estado)
+		{
+			var ancho = (int)((App.AnchoRetratoDePantalla - 30) / 3);
+
+			var estadoActual = new Label
+			{
+				FontSize = 14,
+				TextColor = Color.FromHex("#1D1D1B"),
+				HeightRequest = 55,
+				WidthRequest = ancho,
+				HorizontalTextAlignment = TextAlignment.Center,
+				VerticalTextAlignment = TextAlignment.Center,
+				BackgroundColor = ("cancelado, finalizado").Contains(estado.ToLower())
+					? Color.FromHex("#E2E2E1")
+					: Color.FromHex("#32CEF9"),
+				Text = estado.ToUpper(),
+				VerticalOptions = LayoutOptions.Center,
+				StyleId = "estadoActual"
+			};
+
+			var flecha = new Label
+			{
+				FontSize = 16,
+				TextColor = Color.FromHex("#1D1D1B"),
+				HorizontalTextAlignment = TextAlignment.Center,
+				VerticalTextAlignment = TextAlignment.Center,
+				WidthRequest = 15,
+				HeightRequest = 65,
+				Text = "->",
+				StyleId = "flechaProximoEstado"
+			};
+
+			var botonProximoEstado = new Button
+			{
+				HeightRequest = 65,
+				WidthRequest = ancho,
+				Text = "Finalizar",
+				BackgroundColor = Color.FromHex("#FD8A18"),
+				FontSize = 14,
+				StyleId = "finalizado"
+			};
+			botonProximoEstado.Clicked += CambiarEstadoPedido;
+
+			var botoCancelar = new Button
+			{
+				HeightRequest = 65,
+				WidthRequest = ancho,
+				Text = "Cancelar",
+				BackgroundColor = Color.FromHex("#FE6161"),
+				FontSize = 14,
+				StyleId = "cancelado"
+			};
+			botoCancelar.Clicked += CambiarEstadoPedido;
+
+			var controlProximoEstado = new StackLayout
+			{
+				Children = { flecha, botonProximoEstado, botoCancelar },
+				StyleId = "controlProximoEstado",
+				Orientation = StackOrientation.Horizontal
+			};
+
+			var vista = new StackLayout
+			{
+				VerticalOptions = LayoutOptions.Start,
+				HorizontalOptions = LayoutOptions.Center,
+				Orientation = StackOrientation.Horizontal,
+				Margin = 5,
+				Children = { estadoActual }
+			};
+
+			if (estado.ToLower() == "pendiente")
+            {
+				vista.Children.Add(controlProximoEstado);
+			}
+
+			return vista;
+		}
+
 		private void ConstruirVistaDePedido()
 		{
-			var anchoEtiqueta = App.AnchoRetratoDePantalla / 3 - 10;
-			var anchoCampo = App.AnchoRetratoDePantalla / 3 * 2 - 30;
+			var anchoEtiqueta = (int)(App.AnchoRetratoDePantalla / 3 - 10);
+			var anchoCampo = (int)(App.AnchoRetratoDePantalla / 3 * 2 - 30);
 
 			Label nombreCampo;
 			Entry valorCampo;
@@ -215,116 +302,56 @@ namespace AyudanteNewen.Vistas
 
 			#region Campos de planilla
 
-			nombreCampo = ObtenerEtiquetaProp("Código", (int)anchoEtiqueta);
-			valorCampo = ObtenerCampoProp(_pedido.Id, (int)anchoCampo);
+			// Estado
+			ContenedorProducto.Children.Add(ObtenerControlEstado(_pedido.Estado));
+
+			nombreCampo = ObtenerEtiquetaProp("Código", anchoEtiqueta);
+			valorCampo = ObtenerCampoProp(_pedido.Id, anchoCampo);
 			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
 			ContenedorProducto.Children.Add(campoValor);
 
-			nombreCampo = ObtenerEtiquetaProp("Fecha", (int)anchoEtiqueta);
-			valorCampo = ObtenerCampoProp(_pedido.Fecha, (int)anchoCampo);
+			nombreCampo = ObtenerEtiquetaProp("Fecha", anchoEtiqueta);
+			valorCampo = ObtenerCampoProp(_pedido.Fecha, anchoCampo);
 			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
 			ContenedorProducto.Children.Add(campoValor);
 
-			nombreCampo = ObtenerEtiquetaProp("Cliente", (int)anchoEtiqueta);
-			valorCampo = ObtenerCampoProp(_pedido.Cliente, (int)anchoCampo);
+			nombreCampo = ObtenerEtiquetaProp("Cliente", anchoEtiqueta);
+			valorCampo = ObtenerCampoProp(_pedido.Cliente, anchoCampo);
 			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
 			ContenedorProducto.Children.Add(campoValor);
 
-			nombreCampo = ObtenerEtiquetaProp("Fecha entrega", (int)anchoEtiqueta);
-			valorCampo = ObtenerCampoProp(_pedido.FechaEntrega, (int)anchoCampo);
-			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
-			ContenedorProducto.Children.Add(campoValor);
-
-			nombreCampo = ObtenerEtiquetaProp("Estado", (int)anchoEtiqueta);
-			valorCampo = ObtenerCampoProp(_pedido.Estado, (int)anchoCampo);
+			nombreCampo = ObtenerEtiquetaProp("Fecha entrega", anchoEtiqueta);
+			valorCampo = ObtenerCampoProp(_pedido.FechaEntrega,  anchoCampo);
 			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
 			ContenedorProducto.Children.Add(campoValor);
 
 			// Detalle
 			var anchoGrilla = (int)(App.AnchoRetratoDePantalla * 0.9);
 			var anchoColumna = anchoGrilla / 3 - 2; // - 2 por el divisor (2px)
-			var grillaDetalle = ConstruirGrillaDetalle(Auxiliar.ParsearJsonDetallePedido(_pedido.Detalle), anchoGrilla, anchoColumna); // -6 por los divisores restados a las columnas
+			var grillaDetalle = ConstruirGrillaDetalle(_pedido.Detalle, anchoGrilla, anchoColumna);
 			ContenedorProducto.Children.Add(ConstruirEncabezadoDetalle(anchoGrilla, anchoColumna));
 			ContenedorProducto.Children.Add(grillaDetalle);
 
-			nombreCampo = ObtenerEtiquetaProp("Usuario", (int)anchoEtiqueta);
-			valorCampo = ObtenerCampoProp(_pedido.Usuario, (int)anchoCampo);
+			nombreCampo = ObtenerEtiquetaProp("Usuario", anchoEtiqueta);
+			valorCampo = ObtenerCampoProp(_pedido.Usuario, anchoCampo);
 			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
 			ContenedorProducto.Children.Add(campoValor);
 
-			nombreCampo = ObtenerEtiquetaProp("Comentario", (int)anchoEtiqueta);
-			valorCampo = ObtenerCampoProp(_pedido.Comentario, (int)anchoCampo);
+			nombreCampo = ObtenerEtiquetaProp("Comentario", anchoEtiqueta);
+			valorCampo = ObtenerCampoProp(_pedido.Comentario, anchoCampo);
+			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
+			ContenedorProducto.Children.Add(campoValor);
+
+			nombreCampo = ObtenerEtiquetaProp("Lugar", anchoEtiqueta);
+			valorCampo = ObtenerCampoProp(_pedido.Lugar, anchoCampo);
 			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
 			ContenedorProducto.Children.Add(campoValor);
 
 			#endregion
 		}
 
-		[Android.Runtime.Preserve]
-		private void EventoGuardarCambios()
+		private async Task TareaActualizarEstado(string estado, bool descontarStock)
 		{
-			_guardarCambios.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
-			{
-				GuardarCambios();
-				_guardarCambios.Opacity = 1f;
-				return false;
-			});
-		}
-
-		private async void GuardarCambios()
-		{
-			await TareaGuardarCambios();
-
-			await Navigation.PopAsync();
-			await DisplayAlert("Producto", _mensaje, "Listo");
-		}
-
-		private async Task TareaGuardarCambios()
-		{
-			foreach (var stackLayout in ContenedorProducto.Children)
-			{
-				foreach (var control in ((StackLayout)stackLayout).Children)
-				{
-					int columna;
-					string valor;
-					//if (control.StyleId != null && control.StyleId.Contains("movimiento-"))
-					//{
-					//	columna = Convert.ToInt32(control.StyleId.Split('-')[1]);
-					//	valor = ((Entry)control).Text;
-					//	valor = !string.IsNullOrEmpty(valor)
-					//		? valor.Replace('.', ',')
-					//		: "0"; //Todos los decimales con coma, evita problema de cultura.
-					//	_cantidades.SetValue(Convert.ToDouble(valor), columna);
-					//}
-
-					//if (control.StyleId != null && control.StyleId.Contains("precio-"))
-					//{
-					//	columna = Convert.ToInt32(control.StyleId.Split('-')[1]);
-					//	valor = ((Entry)control).Text;
-					//	valor = !string.IsNullOrEmpty(valor)
-					//		? valor.Replace('.', ',')
-					//		: "0"; //Todos los decimales con coma, evita problema de cultura.
-					//	_precios.SetValue(Convert.ToDouble(valor), columna);
-					//}
-
-					//if (_listaLugares != null && control.StyleId != null && control.StyleId.Contains("punto-"))
-					//{
-					//	columna = Convert.ToInt32(control.StyleId.Split('-')[1]);
-					//	var combo = (Picker)control;
-					//	valor = combo.SelectedIndex != -1 ? combo.Items[combo.SelectedIndex] : "-";
-					//	_lugares.SetValue(valor, columna);
-					//}
-
-					if (control.StyleId != null && control.StyleId.Contains("comentario"))
-					{
-						valor = ((Editor)control).Text;
-						//_comentario = valor;
-					}
-
-				}
-			}
-
 			ContenedorProducto.Children.Clear();
 			ContenedorProducto.Children.Add(_indicadorActividad);
 
@@ -337,9 +364,14 @@ namespace AyudanteNewen.Vistas
 					if (CuentaUsuario.ValidarTokenDeGoogle())
 					{
 						if (CuentaUsuario.ObtenerAccesoDatos() == "G")
-							GuardarProductoHojaDeCalculoGoogle();
+						{
+							ActualizarEstadoPedidoHCG(estado);
+							if (descontarStock) ActualizarInventario();
+						}
 						else
-							GuardarProductoBaseDeDatos();
+							ActualizarEstadoPedidoBD();
+
+						_mensaje = estado == "finalizado" ? "Los cambios han sido registrados correctamente." : "El pedido ha sido cancelado.";
 					}
 					else
 					{
@@ -354,66 +386,69 @@ namespace AyudanteNewen.Vistas
 			{
 				IsBusy = false; //Remueve el Indicador de Actividad.
 			}
-
 		}
 
-		[Android.Runtime.Preserve]
-		private void Volver()
+        private async void ActualizarEstadoPedidoHCG(string estado)
 		{
-			_volver.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
-			{
-				Navigation.PopAsync();
-				_volver.Opacity = 1f;
-				return false;
-			});
+			_mensaje = "Ha ocurrido un error mientras se actualizaba el estado.";
+            try
+            {
+				var estadoPrimeraMayus = char.ToUpper(estado[0]) + estado.Substring(1);
+				foreach (CellEntry celda in _celdas.Entries)
+				{
+					if (celda.Row != _pedido.FilaPlanillaCalculo) continue;
+
+					if (celda.Column == 7 || celda.Column == 8)
+					{
+						celda.InputValue = celda.Column == 7 ? estadoPrimeraMayus : CuentaUsuario.ObtenerNombreUsuarioGoogle() ?? "-";
+						celda.Update();
+					}
+				}
+            }
+            catch (Exception)
+            {
+                // Si se quedó la pantalla abierta un largo tiempo y se venció el token, se cierra y refresca el token
+                var paginaAuntenticacion = new PaginaAuntenticacion(true);
+                Navigation.InsertPageBefore(paginaAuntenticacion, this);
+                await Navigation.PopAsync();
+            }
 		}
 
-		private async void GuardarProductoHojaDeCalculoGoogle()
+		private void ActualizarInventario()
 		{
-			_mensaje = "Ha ocurrido un error mientras se guardaba el movimiento.";
 			var servicioGoogle = new ServiciosGoogle();
-			var grabo = false;
-			//foreach (var celda in _pedido)
-			//{
-			//	if (_listaColumnasInventario[(int)celda.Column - 1] == "1")
-			//	{
-			//		var multiplicador = _signoPositivo[(int)celda.Column - 1] ? 1 : -1;
-			//		var cantidad = _cantidades[(int)celda.Column - 1];
-			//		var precio = _precios[(int)celda.Column - 1];
-			//		var lugar = _listaLugares != null ? _lugares[(int)celda.Column - 1] : "No tiene configurado.";
+			var columnasProductos = CuentaUsuario.ObtenerColumnasProductos()?.Split(',');
+			var producto = new string[columnasProductos.Length];
+			var linkHojaProducto = CuentaUsuario.ObtenerLinkHojaPorNombre("Productos App");
+			var linkHojaProductoHistorico = CuentaUsuario.ObtenerLinkHojaHistoricosParaLinkHoja(linkHojaProducto);
 
-			//		if (cantidad != 0)
-			//		{
-			//			try
-			//			{
-			//				// Si no hay lugares no hay campo de PrecioTotal, entonces el precio lo toma de la cantidad
-			//				if (_listaLugares == null)
-			//					precio = multiplicador * cantidad;
+			foreach (var lineaDetalle in _pedido.Detalle)
+            {
+                string comentario = "Pedido " + _pedido.Id + " a " + _pedido.Cliente + ". " + _pedido.Comentario;
+				for(var i = 0; i < columnasProductos?.Length; i++)
+                {
+					if (i == 0) { producto[0] = lineaDetalle.IdProducto; continue; }
+					if (i == 1) { producto[1] = lineaDetalle.NombreProducto;	continue;}
+					if (i == lineaDetalle.ColumnaStockElegido) { producto[i] = lineaDetalle.Cantidad; continue; }
+					producto[i] = "-";
+				}
 
-			//				//Ingresa el movimiento de existencia (entrada - salida) en la tabla principal
-			//				servicioGoogle.EnviarMovimiento(_servicio, celda, multiplicador * cantidad, precio, lugar, _comentario, _pedido, _nombresColumnas,
-			//					_listaColumnasInventario, CuentaUsuario.ObtenerLinkHojaHistoricos());
-			//				//Si es página principal y tiene las relaciones insumos - productos, ingresa los movimientos de insumos
-			//				if (multiplicador == 1) //Si es ingreso positivo
-			//					servicioGoogle.InsertarMovimientosRelaciones(_servicio, cantidad, _pedido);
-
-			//				grabo = true;
-			//			}
-			//			catch (Exception)
-			//			{
-			//				// Si se quedó la pantalla abierta un largo tiempo y se venció el token, se cierra y refresca el token
-			//				var paginaAuntenticacion = new PaginaAuntenticacion(true);
-			//				Navigation.InsertPageBefore(paginaAuntenticacion, this);
-			//				await Navigation.PopAsync();
-			//			}
-			//		}
-			//	}
-			//}
-			_mensaje = grabo ? "El movimiento ha sido guardado correctamente." : "No se han registrado movimientos.";
+				servicioGoogle.EnviarMovimiento(
+					_servicio,
+					lineaDetalle.ColumnaStockElegido,
+					-1 * Convert.ToDouble(lineaDetalle.Cantidad.Replace(',','.')),
+					Convert.ToDouble(lineaDetalle.Precio.Replace(',', '.')),
+					_pedido.Lugar,
+					comentario,
+					producto,
+					columnasProductos,
+					_listaColumnasInventario,
+					linkHojaProductoHistorico
+				);
+			}
 		}
 
-		private void GuardarProductoBaseDeDatos()
+		private void ActualizarEstadoPedidoBD()
 		{
 			_mensaje = "Ha ocurrido un error mientras se guardaba el movimiento.";
 			//const string url = @"http://169.254.80.80/PruebaMision/Service.asmx/ActualizarProducto?codigo={0}&movimiento={1}";

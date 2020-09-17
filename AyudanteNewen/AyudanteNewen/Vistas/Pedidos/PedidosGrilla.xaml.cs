@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 using DataTemplate = Xamarin.Forms.DataTemplate;
 using TextAlignment = Xamarin.Forms.TextAlignment;
-using System.IO;
 
 namespace AyudanteNewen.Vistas
 {
@@ -18,16 +17,16 @@ namespace AyudanteNewen.Vistas
 	{
 		private readonly ServiciosGoogle _servicioGoogle;
 		private readonly SpreadsheetsService _servicio;
-		private string[] _nombresColumnas;
 		private ViewCell _ultimoItemSeleccionado;
 		private Color _ultimoColorSeleccionado;
-		private List<string[]> _pedidos;
 		private ActivityIndicator _indicadorActividad;
 		private Image _refrescar;
 		private Image _crearPedido;
-		private List<ClasePedido> _listaPedidos;
+		private List<Clases.Pedido> _listaPedidos;
+		private List<string[]> _pedidos;
+		private CellFeed _celdas;
 
-		//Constructor para Hoja de cálculo de Google
+		// Constructor para Hoja de cálculo de Google
 		public PedidosGrilla(SpreadsheetsService servicio)
 		{
 			InitializeComponent();
@@ -40,7 +39,7 @@ namespace AyudanteNewen.Vistas
 			// La carga de los pedidos se realiza en el OnAppearing
 		}
 
-		//Constructor para Base de Datos
+		// Constructor para Base de Datos
 		public PedidosGrilla()
 		{
 			InitializeComponent();
@@ -52,7 +51,6 @@ namespace AyudanteNewen.Vistas
 
 		private async void ObtenerDatosPedidosDesdeHCG()
 		{
-			CellFeed celdas;
 			try
 			{
 				IsBusy = true;
@@ -62,27 +60,23 @@ namespace AyudanteNewen.Vistas
 					if (CuentaUsuario.ValidarTokenDeGoogle())
 					{
 						var linkHojaPedidos = "https://spreadsheets.google.com/feeds/cells/1nym6a5ctSFfyZkbMmbiC8pCyG_qBaWZK9xKN3BSKyS8/obbk7z3/private/full";
-						celdas = _servicioGoogle.ObtenerCeldasDeUnaHoja(linkHojaPedidos, _servicio);
-
-						_nombresColumnas = new string[celdas.ColCount.Count];
+						_celdas = _servicioGoogle.ObtenerCeldasDeUnaHoja(linkHojaPedidos, _servicio);
 
 						var pedidos = new List<string[]>();
-						var pedido = new string[celdas.ColCount.Count];
+						var pedido = new string[_celdas.ColCount.Count];
 
-						foreach (CellEntry celda in celdas.Entries)
+						foreach (CellEntry celda in _celdas.Entries)
 						{
 							if (celda.Row != 1)
 							{
 								if (celda.Column == 1)
-									pedido = new string[celdas.ColCount.Count];
+									pedido = new string[_celdas.ColCount.Count];
 
 								pedido.SetValue(celda.Value, (int)celda.Column - 1);
 
-								if (celda.Column == celdas.ColCount.Count)
+								if (celda.Column == _celdas.ColCount.Count)
 									pedidos.Add(pedido);
 							}
-							else
-								_nombresColumnas.SetValue(celda.Value, (int)celda.Column - 1);
 						}
 
 						LlenarGrillaDePedidos(pedidos);
@@ -98,7 +92,8 @@ namespace AyudanteNewen.Vistas
 			}
 			finally
 			{
-				IsBusy = false; //Remueve el Indicador de Actividad.
+				// Remueve el Indicador de Actividad.
+				IsBusy = false;
 			}
 		}
 
@@ -125,8 +120,6 @@ namespace AyudanteNewen.Vistas
 						var jsonPedidos = await cliente.GetStringAsync(url);
 						// Parsea el json para obtener la lista de pedidos
 						pedidos = ParsearJSONPedidos(jsonPedidos);
-
-						_nombresColumnas = new[] { "Fecha", "Id Cliente", "Cliente", "Fecha entrega", "Estado", "Usuario", "Comentario" };
 					});
 				}
 				finally
@@ -151,7 +144,7 @@ namespace AyudanteNewen.Vistas
 			{
 				var temporal = datos.Replace(",\"", "|").Split('|');
 
-				//Si el pedido no está oculto lo agregamos
+				// Si el pedido no está oculto lo agregamos
 				if (temporal[12].Split(':')[1].TrimStart('"').TrimEnd('"') == "true") continue;
 				var pedido = new string[3];
 				pedido[0] = temporal[0].Split(':')[1].TrimStart('"').TrimEnd('"'); // ID
@@ -215,22 +208,23 @@ namespace AyudanteNewen.Vistas
 
 		private async void IrAlPedido(string idPedidoSeleccionado)
 		{
-			ClasePedido pedisoSeleccionado = _listaPedidos.FirstOrDefault(pedido => pedido.Id == idPedidoSeleccionado);
+			var pedisoSeleccionado = _listaPedidos.FirstOrDefault(pedido => pedido.Id == idPedidoSeleccionado);
 			if (pedisoSeleccionado != null)
-				await Navigation.PushAsync(new Pedido(pedisoSeleccionado, _nombresColumnas, _servicio), true);
+				await Navigation.PushAsync(new Pedido(pedisoSeleccionado, _servicio, _celdas), true);
 			else
 				await DisplayAlert("Código", "No se ha encontrado un pedido para el código seleccionado.", "Listo");
 
 		}
 
-		private List<ClasePedido> ObtenerListaPedidos(IReadOnlyCollection<string[]> pedidos)
+		private List<Clases.Pedido> ObtenerListaPedidos(IReadOnlyCollection<string[]> pedidos)
         {
 			bool esTeclaPar = false;
-			var listaPedidos = new List<ClasePedido>();
+			var listaPedidos = new List<Clases.Pedido>();
+			var filaPlanillaCalculo = 2;
 			foreach (var filaPedido in pedidos)
 			{
 				// Mostraremos solo las sig. columnas de la planilla: Fecha, Cliente, Detalle, Fecha entrega, Estado, Usuario
-				var pedido = new ClasePedido(
+				var pedido = new Clases.Pedido(
 					filaPedido[0],
 					filaPedido[1],
 					filaPedido[2],
@@ -239,10 +233,13 @@ namespace AyudanteNewen.Vistas
 					filaPedido[5],
 					filaPedido[6],
 					filaPedido[7],
-					filaPedido[8]
+					filaPedido[8],
+					filaPedido[9],
+					filaPlanillaCalculo
 				);
 				listaPedidos.Add(pedido);
 				esTeclaPar = !esTeclaPar;
+				filaPlanillaCalculo += 1;
 			}
 			return listaPedidos;
 		}
@@ -340,7 +337,7 @@ namespace AyudanteNewen.Vistas
 					{
 						if (_ultimoItemSeleccionado != null)
 							_ultimoItemSeleccionado.View.BackgroundColor = _ultimoColorSeleccionado;
-						IrAlPedido(((ClasePedido)((ViewCell)sender).BindingContext).Id);
+						IrAlPedido(((Clases.Pedido)((ViewCell)sender).BindingContext).Id);
 						_ultimoColorSeleccionado = celda.View.BackgroundColor;
 						celda.View.BackgroundColor = Color.Silver;
 						_ultimoItemSeleccionado = (ViewCell)sender;
@@ -402,7 +399,7 @@ namespace AyudanteNewen.Vistas
 		[Android.Runtime.Preserve]
 		private async void CrearPedido()
 		{
-			await Navigation.PushAsync(new Pedido(null, _nombresColumnas, _servicio), true);
+			await Navigation.PushAsync(new Pedido(null, _servicio), true);
 		}
 
 		// Cuando carga la página.
@@ -413,57 +410,4 @@ namespace AyudanteNewen.Vistas
 
 		#endregion
 	}
-
-    //Clase Pedido: utilizada para armar la lista scrolleable de pedidos
-    [Android.Runtime.Preserve]
-    public class ClasePedido
-    {
-        [Android.Runtime.Preserve]
-        public ClasePedido(
-			string idPedido,
-			string fecha,
-			string idCliente,
-			string cliente,
-			string detallePedido,
-			string fechaEntrega,
-			string estado,
-			string usuario,
-			string comentario
-		)
-        {
-            Id = idPedido;
-			Fecha = fecha;
-			IdCliente = idCliente;
-			Cliente = cliente;
-            Detalle = detallePedido;
-			FechaEntrega = fechaEntrega;
-			Estado = estado;
-			Usuario = usuario;
-			Comentario = comentario;
-			ColorFondo = ("cancelado, completo").Contains(estado.ToLower())
-				? Color.FromHex("#E2E2E1")
-				: Color.FromHex("#32CEF9");
-        }
-
-		[Android.Runtime.Preserve]
-        public string Id { get; }
-		[Android.Runtime.Preserve]
-		public string Fecha { get; }
-		[Android.Runtime.Preserve]
-        public string IdCliente { get; }
-		[Android.Runtime.Preserve]
-		public string Cliente { get; }
-		[Android.Runtime.Preserve]
-        public string Detalle { get; }
-		[Android.Runtime.Preserve]
-		public string FechaEntrega { get; }
-		[Android.Runtime.Preserve]
-		public string Estado { get; }
-		[Android.Runtime.Preserve]
-		public string Usuario { get; }
-		[Android.Runtime.Preserve]
-		public string Comentario { get; }
-		[Android.Runtime.Preserve]
-        public Color ColorFondo { get; }
-    }
 }

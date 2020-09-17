@@ -156,6 +156,11 @@ namespace AyudanteNewen.Clases
 			GuardarValorEnCuentaLocal("relacionesInsumoProducto", relacionesInsumoProducto);
 		}
 
+		internal static void AlmacenarColumnasProducto(string columnasProducto)
+		{
+			GuardarValorEnCuentaLocal("columnasProducto", columnasProducto);
+		}
+
 		internal static bool VerificarHojaUsada(string linkHojaConsulta)
 		{
 			return _cuenta != null && _cuenta.Properties.ContainsKey(linkHojaConsulta + "|nombre");
@@ -321,6 +326,12 @@ namespace AyudanteNewen.Clases
 			}
 
 			return link;
+		}
+
+		internal static string ObtenerColumnasProductos()
+        {
+			return RecuperarValorDeCuentaLocal("columnasProducto");
+
 		}
 
 		internal static string CambiarHojaSeleccionada(string nombreHoja)
