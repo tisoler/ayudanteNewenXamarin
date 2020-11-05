@@ -79,6 +79,10 @@ namespace AyudanteNewen.Vistas
 					{
 						ValidarHabilitacionRelacionesInsumoProducto(linkHoja);
 						AlmacnarColumnasProducto(linkHoja);
+
+						// HACER -- En la configuración directa, agregar nunto a las otras hojas. Hacer if anidados y recorrer la lista de hojas una sola vez.
+						AgregarHojaClientes();
+						AgregarHojaPedidos();
 					}
 
 					pagina = new ListaHojasHistoricoGoogle(_servicio, _listaHojas);
@@ -107,6 +111,28 @@ namespace AyudanteNewen.Vistas
 
 				var linkHojaRelacionesInsumoProducto = datosHoja.Links.FindService(GDataSpreadsheetsNameTable.CellRel, null).HRef.ToString();
 				CuentaUsuario.AlmacenarLinkHojaRelacionesInsumoProducto(linkHoja, linkHojaRelacionesInsumoProducto);
+			}
+		}
+
+		private void AgregarHojaClientes()
+		{
+			foreach (var datosHoja in _listaHojas)
+			{
+				if (!datosHoja.Title.Text.Equals("Clientes App")) continue;
+
+				var linkHojaClientes = datosHoja.Links.FindService(GDataSpreadsheetsNameTable.CellRel, null).HRef.ToString();
+				CuentaUsuario.AlmacenarLinkHojaClientes(linkHojaClientes);
+			}
+		}
+
+		private void AgregarHojaPedidos()
+		{
+			foreach (var datosHoja in _listaHojas)
+			{
+				if (!datosHoja.Title.Text.Equals("Pedidos App")) continue;
+
+				var linkHojaPedidos = datosHoja.Links.FindService(GDataSpreadsheetsNameTable.CellRel, null).HRef.ToString();
+				CuentaUsuario.AlmacenarLinkHojaPedidos(linkHojaPedidos);
 			}
 		}
 

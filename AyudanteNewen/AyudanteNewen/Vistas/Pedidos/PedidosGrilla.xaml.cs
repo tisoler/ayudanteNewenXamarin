@@ -23,7 +23,7 @@ namespace AyudanteNewen.Vistas
 		private Image _refrescar;
 		private Image _crearPedido;
 		private List<Clases.Pedido> _listaPedidos;
-		private List<string[]> _pedidos;
+        private List<string[]> _pedidos;
 		private CellFeed _celdas;
 
 		// Constructor para Hoja de cálculo de Google
@@ -59,7 +59,7 @@ namespace AyudanteNewen.Vistas
 				{
 					if (CuentaUsuario.ValidarTokenDeGoogle())
 					{
-						var linkHojaPedidos = "https://spreadsheets.google.com/feeds/cells/1nym6a5ctSFfyZkbMmbiC8pCyG_qBaWZK9xKN3BSKyS8/obbk7z3/private/full";
+						var linkHojaPedidos = CuentaUsuario.ObtenerLinkHojaPedidos(); ;
 						_celdas = _servicioGoogle.ObtenerCeldasDeUnaHoja(linkHojaPedidos, _servicio);
 
 						var pedidos = new List<string[]>();
@@ -399,7 +399,7 @@ namespace AyudanteNewen.Vistas
 		[Android.Runtime.Preserve]
 		private async void CrearPedido()
 		{
-			await Navigation.PushAsync(new Pedido(null, _servicio), true);
+			await Navigation.PushAsync(new NuevoPedido(_servicio), true);
 		}
 
 		// Cuando carga la página.

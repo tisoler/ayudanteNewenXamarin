@@ -429,7 +429,7 @@ namespace AyudanteNewen.Vistas
                 {
 					if (i == 0) { producto[0] = lineaDetalle.IdProducto; continue; }
 					if (i == 1) { producto[1] = lineaDetalle.NombreProducto;	continue;}
-					if (i == lineaDetalle.ColumnaStockElegido) { producto[i] = lineaDetalle.Cantidad; continue; }
+					if (i == lineaDetalle.ColumnaStockElegido ) { producto[i] = lineaDetalle.Cantidad; continue; }
 					producto[i] = "-";
 				}
 
