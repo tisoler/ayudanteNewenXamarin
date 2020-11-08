@@ -133,6 +133,8 @@ namespace AyudanteNewen.Vistas
 
 				var linkHojaPedidos = datosHoja.Links.FindService(GDataSpreadsheetsNameTable.CellRel, null).HRef.ToString();
 				CuentaUsuario.AlmacenarLinkHojaPedidos(linkHojaPedidos);
+				linkHojaPedidos = datosHoja.Links.FindService(GDataSpreadsheetsNameTable.ListRel, null).HRef.ToString();
+				CuentaUsuario.AlmacenarLinkHojaPedidosParaEditar(linkHojaPedidos);
 			}
 		}
 

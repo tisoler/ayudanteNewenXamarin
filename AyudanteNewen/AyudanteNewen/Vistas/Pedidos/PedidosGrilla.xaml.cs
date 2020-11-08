@@ -399,7 +399,7 @@ namespace AyudanteNewen.Vistas
 		[Android.Runtime.Preserve]
 		private async void CrearPedido()
 		{
-			await Navigation.PushAsync(new NuevoPedido(_servicio), true);
+			await Navigation.PushAsync(new NuevoPedido(_servicio, _listaPedidos), true);
 		}
 
 		// Cuando carga la página.

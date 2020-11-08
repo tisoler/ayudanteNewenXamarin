@@ -40,30 +40,34 @@ namespace AyudanteNewen.Clases
 				: Color.FromHex("#32CEF9");
 		}
 
-		[Android.Runtime.Preserve]
-		public string Id { get; }
-		[Android.Runtime.Preserve]
-		public string Fecha { get; }
-		[Android.Runtime.Preserve]
-		public string IdCliente { get; }
-		[Android.Runtime.Preserve]
-		public string Cliente { get; }
-		[Android.Runtime.Preserve]
-		public List<DetallePedido> Detalle { get; }
-		[Android.Runtime.Preserve]
-		public string FechaEntrega { get; }
-		[Android.Runtime.Preserve]
-		public string Estado { get; }
-		[Android.Runtime.Preserve]
-		public string Usuario { get; }
-		[Android.Runtime.Preserve]
-		public string Comentario { get; }
+		public Pedido()
+		{
+		}
 
 		[Android.Runtime.Preserve]
-		public string Lugar { get; }
+		public string Id { get; set; }
 		[Android.Runtime.Preserve]
-		public int FilaPlanillaCalculo { get; }
+		public string Fecha { get; set; }
 		[Android.Runtime.Preserve]
-		public Color ColorFondo { get; }
+		public string IdCliente { get; set; }
+		[Android.Runtime.Preserve]
+		public string Cliente { get; set; }
+		[Android.Runtime.Preserve]
+		public List<DetallePedido> Detalle { get; set; }
+		[Android.Runtime.Preserve]
+		public string FechaEntrega { get; set; }
+		[Android.Runtime.Preserve]
+		public string Estado { get; set; }
+		[Android.Runtime.Preserve]
+		public string Usuario { get; set; }
+		[Android.Runtime.Preserve]
+		public string Comentario { get; set; }
+
+		[Android.Runtime.Preserve]
+		public string Lugar { get; set; }
+		[Android.Runtime.Preserve]
+		public int FilaPlanillaCalculo { get; set; }
+		[Android.Runtime.Preserve]
+		public Color ColorFondo { get; set; }
 	}
 }

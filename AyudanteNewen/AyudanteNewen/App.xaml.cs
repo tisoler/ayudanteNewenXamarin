@@ -9,7 +9,9 @@ namespace AyudanteNewen
 	public partial class App
 	{
 		public static double AnchoRetratoDePantalla;
+		public static double AltoRetratoDePantalla;
 		public static double AnchoApaisadoDePantalla;
+		public static double AltoApaisadoDePantalla;
 		public static bool EstaApaisado;
 		public const string RutaImagenSombraEncabezado = "AyudanteNewen.Imagenes.sombraEncabezado.png";
 		public static App Instancia;

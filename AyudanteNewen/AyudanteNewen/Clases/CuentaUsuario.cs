@@ -161,6 +161,11 @@ namespace AyudanteNewen.Clases
 			GuardarValorEnCuentaLocal("linkHojaPedidos", linkHojaPedidos);
 		}
 
+		public static void AlmacenarLinkHojaPedidosParaEditar(string linkHojaPedidos)
+		{
+			GuardarValorEnCuentaLocal("linkHojaPedidosParaEditar", linkHojaPedidos);
+		}
+
 		internal static void AlmacenarRelacionesInsumoProducto(string relacionesInsumoProducto)
 		{
 			GuardarValorEnCuentaLocal("relacionesInsumoProducto", relacionesInsumoProducto);
@@ -280,6 +285,11 @@ namespace AyudanteNewen.Clases
 		internal static string ObtenerLinkHojaPedidos()
 		{
 			return RecuperarValorDeCuentaLocal("linkHojaPedidos");
+		}
+
+		internal static string ObtenerLinkHojaPedidosParaEditar()
+		{
+			return RecuperarValorDeCuentaLocal("linkHojaPedidosParaEditar");
 		}
 
 		internal static string ObtenerPuntosVenta()

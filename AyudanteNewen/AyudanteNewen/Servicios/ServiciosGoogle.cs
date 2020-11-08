@@ -108,7 +108,7 @@ namespace AyudanteNewen.Servicios
 			// Convierte el contenido de la fila en stream
 			var filaEnArregloDeBytes = Encoding.UTF8.GetBytes(filas);
 			var filaEnStream = new MemoryStream(filaEnArregloDeBytes);
-			// Inserta la fila en la hoja Historial (Google)
+			// Inserta la fila en la hoja (Google)
 			servicio.Insert(new Uri(url), filaEnStream, tipoDelContenido, "");
 			//servicio.StreamSend(new Uri(url), filaEnStream, GDataRequestType.Batch,  tipoDelContenido, "", "");
 		}
@@ -183,8 +183,53 @@ namespace AyudanteNewen.Servicios
 			//		+ movimientos + "</feed>";
 			//	EnviarFilas(movimientos, servicio, linkHistoricoInsumos);
 			//}
-			
 		}
-	}
 
+		public string ObtenerPedido(Pedido pedido)
+		{
+			// Abre la fila
+			var fila = "<entry xmlns=\"http://www.w3.org/2005/Atom\" xmlns:gsx=\"http://schemas.google.com/spreadsheets/2006/extended\">";
+			// Agrega Id Pedido
+			fila += "<gsx:idpedido>" + pedido.Id + "</gsx:idpedido>";
+			// Agrega la fecha
+			fila += "<gsx:fecha>" + pedido.Fecha + "</gsx:fecha>";
+			// Agrega Id Cliente
+			fila += "<gsx:idcliente>" + pedido.IdCliente + "</gsx:idcliente>";
+			// Agrega Cliente
+			fila += "<gsx:cliente>" + pedido.Cliente + "</gsx:cliente>";
+
+			var detallePedido = "";
+			foreach (var lineaDetalle in pedido.Detalle)
+			{
+				detallePedido += "{idProducto: " + lineaDetalle.IdProducto + ", nombreProducto: " + lineaDetalle.NombreProducto + ", cantidad: " + lineaDetalle.Cantidad +
+					", precio: " + lineaDetalle.Precio + ", columnaStockElegido: " + lineaDetalle.ColumnaStockElegido + "},";
+			}
+			detallePedido = "{[" + detallePedido.TrimEnd(',') + "]}";
+
+			// Agrega Detalle
+			fila += "<gsx:detalle>" + detallePedido + "</gsx:detalle>";
+			// Agrega Fecha entrega
+			fila += "<gsx:fechaentrega>" + pedido.FechaEntrega + "</gsx:fechaentrega>";
+			// Agrega Estado
+			fila += "<gsx:estado>" + pedido.Estado + "</gsx:estado>";
+			// Agrega Usuario
+			fila += "<gsx:usuario>" + pedido.Usuario + "</gsx:usuario>";
+			// Agrega Comentario
+			fila += "<gsx:comentario>" + pedido.Comentario + "</gsx:comentario>";
+			// Agrega Lugar
+			fila += "<gsx:lugar>" + pedido.Lugar + "</gsx:lugar>";
+
+			// Cierra la fila
+			fila += "</entry>";
+
+			return fila;
+		}
+
+		internal void InsertarPedido(SpreadsheetsService servicio, Pedido pedido)
+        {
+			var filas = ObtenerPedido(pedido);
+			EnviarFilas(filas, servicio, CuentaUsuario.ObtenerLinkHojaPedidosParaEditar());
+		}
+
+	}
 }
