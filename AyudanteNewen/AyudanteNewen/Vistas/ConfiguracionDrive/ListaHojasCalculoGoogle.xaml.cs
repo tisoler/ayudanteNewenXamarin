@@ -6,8 +6,6 @@ using AyudanteNewen.Clases;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AyudanteNewen.Servicios;
-using System;
-using System.Linq;
 
 namespace AyudanteNewen.Vistas
 {

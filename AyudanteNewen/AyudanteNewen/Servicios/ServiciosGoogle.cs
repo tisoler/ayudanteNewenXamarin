@@ -65,7 +65,7 @@ namespace AyudanteNewen.Servicios
 			// Agrega el Movimiento
 			fila += "<gsx:cantidad>" + cantidad.ToString().Replace('.', ',') + "</gsx:cantidad>";
 			// Agrega el Precio total
-			fila += "<gsx:preciototal>" + Math.Abs(precio) + "</gsx:preciototal>";
+			fila += "<gsx:preciototal>" + precio.ToString().Replace('.', ',') + "</gsx:preciototal>";
 			// Agrega el Lugar (proveedor o punto de venta)
 			fila += "<gsx:lugar>" + WebUtility.HtmlEncode(lugar) + "</gsx:lugar>";
 			// Agrega Comentario
@@ -156,7 +156,7 @@ namespace AyudanteNewen.Servicios
 						double.TryParse(insumosRelacion[celda.Value], NumberStyles.AllowDecimalPoint, new CultureInfo("es-ES"), out cantInsumoRelacion);
 					}
 					if (celda.Row == fila)
-						insumoSeleccionado.SetValue(celda, (int)celda.Column - 1); // Va recuperando los valores del Insumo
+						insumoSeleccionado.SetValue(celda.Value, (int)celda.Column - 1); // Va recuperando los valores del Insumo
 
 					// Toma celda de stock del insumo para descontar (si tiene 1 toma esa, si tiene más de 1 toma la última)
 					if (columnasInventario[(int)celda.Column - 1] == "1")
@@ -166,8 +166,16 @@ namespace AyudanteNewen.Servicios
 					if (fila > -1 && (celda.Row > fila || celda.Column == celdas.ColCount.Count))
 					{
 						// Se agregan filas de movimientos de insumos para enviar al final
-						var movimiento = AgregarHistorico(celdaMovimiento.Column, -1 * cantidad * cantInsumoRelacion, 0, "-", insumoSeleccionado, nombresColumnas, columnasInventario,
-							"Disminución por producción.");
+						var movimiento = AgregarHistorico(
+							celdaMovimiento.Column - 1,
+							-1 * cantidad * cantInsumoRelacion,
+							0,
+							"-",
+							insumoSeleccionado,
+							nombresColumnas,
+							columnasInventario,
+							"Disminución por producción."
+						);
 						EnviarFilas(movimiento, servicio, linkHistoricoInsumos);
 						fila = -1;
 					}

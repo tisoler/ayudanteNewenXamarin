@@ -54,8 +54,7 @@ namespace AyudanteNewen
 		{
 			ContentPage pagina;
 
-			if (_conexionExistente
-			) //Si es verdadero debe llevarnos a la Grilla en lugar de avanzar hacia la página de selección de libros
+			if (_conexionExistente) // Si es verdadero debe llevarnos a la Grilla en lugar de avanzar hacia la página de selección de libros
 			{
 				var linkHojaConsulta = CuentaUsuario.ObtenerLinkHojaConsulta();
 				App.Instancia.LimpiarNavegadorLuegoIrPagina(new PaginaGrilla(linkHojaConsulta, null));

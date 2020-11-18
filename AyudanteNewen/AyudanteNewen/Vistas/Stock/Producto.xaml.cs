@@ -6,6 +6,7 @@ using AyudanteNewen.Clases;
 using AyudanteNewen.Servicios;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace AyudanteNewen.Vistas
 {
@@ -40,6 +41,14 @@ namespace AyudanteNewen.Vistas
 			Titulo.Text += " " + titulo.Replace("App", "").Replace("es ", " ").Replace("s ", " ");
 
 			ConstruirVistaDeProducto();
+		}
+
+		private async void IrPaginaAutenticacion()
+        {
+			//Si se quedó la pantalla abierta un largo tiempo y se venció el token, se cierra y refresca el token
+			var paginaAuntenticacion = new PaginaAuntenticacion(true);
+			Navigation.InsertPageBefore(paginaAuntenticacion, this);
+			await Navigation.PopAsync();
 		}
 
 		private string[] ObtenerArregloCeldasProducto(CellEntry[] producto)
@@ -403,7 +412,14 @@ namespace AyudanteNewen.Vistas
 
 		private async void GuardarCambios()
 		{
-			await TareaGuardarCambios();
+			try
+			{
+				await TareaGuardarCambios();
+			}
+			catch
+			{
+				IrPaginaAutenticacion();
+			}
 
 			await Navigation.PopAsync();
 			await DisplayAlert("Producto", _mensaje, "Listo");
@@ -421,20 +437,20 @@ namespace AyudanteNewen.Vistas
 					{
 						columna = Convert.ToInt32(control.StyleId.Split('-')[1]);
 						valor = ((Entry)control).Text;
-						valor = !string.IsNullOrEmpty(valor)
-							? valor.Replace('.', ',')
-							: "0"; //Todos los decimales con coma, evita problema de cultura.
-						_cantidades.SetValue(Convert.ToDouble(valor), columna);
+						double valorNumerico = !string.IsNullOrEmpty(valor)
+							? double.Parse(valor, CultureInfo.InvariantCulture)
+							: 0;
+						_cantidades.SetValue(valorNumerico, columna);
 					}
 
 					if (control.StyleId != null && control.StyleId.Contains("precio-"))
 					{
 						columna = Convert.ToInt32(control.StyleId.Split('-')[1]);
 						valor = ((Entry)control).Text;
-						valor = !string.IsNullOrEmpty(valor)
-							? valor.Replace('.', ',')
-							: "0"; //Todos los decimales con coma, evita problema de cultura.
-						_precios.SetValue(Convert.ToDouble(valor), columna);
+						double valorNumerico = !string.IsNullOrEmpty(valor)
+							? double.Parse(valor, CultureInfo.InvariantCulture)
+							: 0;
+						_precios.SetValue(valorNumerico, columna);
 					}
 
 					if (_listaLugares != null && control.StyleId != null && control.StyleId.Contains("punto-"))
@@ -461,7 +477,7 @@ namespace AyudanteNewen.Vistas
 			{
 				IsBusy = true;
 
-				await Task.Run(async () =>
+				await Task.Run(() =>
 				{
 					if (CuentaUsuario.ValidarTokenDeGoogle())
 					{
@@ -472,10 +488,7 @@ namespace AyudanteNewen.Vistas
 					}
 					else
 					{
-						//Si se quedó la pantalla abierta un largo tiempo y se venció el token, se cierra y refresca el token
-						var paginaAuntenticacion = new PaginaAuntenticacion(true);
-						Navigation.InsertPageBefore(paginaAuntenticacion, this);
-						await Navigation.PopAsync();
+						IrPaginaAutenticacion();
 					}
 				});
 			}
@@ -510,7 +523,7 @@ namespace AyudanteNewen.Vistas
 			});
 		}
 
-		private async void GuardarProductoHojaDeCalculoGoogle()
+		private void GuardarProductoHojaDeCalculoGoogle()
 		{
 			_mensaje = "Ha ocurrido un error mientras se guardaba el movimiento.";
 			var servicioGoogle = new ServiciosGoogle();
@@ -526,28 +539,18 @@ namespace AyudanteNewen.Vistas
 
 					if (cantidad != 0)
 					{
-						try
-						{
-							// Si no hay lugares no hay campo de PrecioTotal, entonces el precio lo toma de la cantidad
-							if (_listaLugares == null)
-								precio = multiplicador * cantidad;
+						// Si no hay lugares no hay campo de PrecioTotal, entonces el precio lo toma de la cantidad
+						if (_listaLugares == null)
+							precio = multiplicador * cantidad;
 
-							//Ingresa el movimiento de existencia (entrada - salida) en la tabla principal
-							servicioGoogle.EnviarMovimiento(_servicio, columnaCelda, multiplicador * cantidad, precio, lugar, _comentario, _productoString, _nombresColumnas,
-								_listaColumnasInventario, CuentaUsuario.ObtenerLinkHojaHistoricos());
-							//Si es página principal y tiene las relaciones insumos - productos, ingresa los movimientos de insumos
-							if (multiplicador == 1) //Si es ingreso positivo
-								servicioGoogle.InsertarMovimientosRelaciones(_servicio, cantidad, _productoString);
+						//Ingresa el movimiento de existencia (entrada - salida) en la tabla principal
+						servicioGoogle.EnviarMovimiento(_servicio, columnaCelda, multiplicador * cantidad, precio, lugar, _comentario, _productoString, _nombresColumnas,
+							_listaColumnasInventario, CuentaUsuario.ObtenerLinkHojaHistoricos());
+						//Si es página principal y tiene las relaciones insumos - productos, ingresa los movimientos de insumos
+						if (multiplicador == 1) //Si es ingreso positivo
+							servicioGoogle.InsertarMovimientosRelaciones(_servicio, cantidad, _productoString);
 
-							grabo = true;
-						}
-						catch (Exception)
-						{
-							// Si se quedó la pantalla abierta un largo tiempo y se venció el token, se cierra y refresca el token
-							var paginaAuntenticacion = new PaginaAuntenticacion(true);
-							Navigation.InsertPageBefore(paginaAuntenticacion, this);
-							await Navigation.PopAsync();
-						}
+						grabo = true;
 					}
 				}
 			}
