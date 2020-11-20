@@ -326,7 +326,7 @@ namespace AyudanteNewen.Vistas
 			ContenedorProducto.Children.Add(campoValor);
 
 			// Detalle
-			var anchoGrilla = (int)(App.AnchoRetratoDePantalla * 0.9);
+			var anchoGrilla = (int)(App.AnchoRetratoDePantalla * 0.99);
 			var anchoColumna = anchoGrilla / 3 - 2; // - 2 por el divisor (2px)
 			var grillaDetalle = ConstruirGrillaDetalle(_pedido.Detalle, anchoGrilla, anchoColumna);
 			ContenedorProducto.Children.Add(ConstruirEncabezadoDetalle(anchoGrilla, anchoColumna));
@@ -414,23 +414,50 @@ namespace AyudanteNewen.Vistas
             }
 		}
 
+		private List<string[]> ObtenerListado(ServiciosGoogle servicioGoogle, string linkHoja)
+		{
+			var celdas = servicioGoogle.ObtenerCeldasDeUnaHoja(linkHoja, _servicio);
+
+			var listado = new List<string[]>();
+			var item = new string[celdas.ColCount.Count];
+
+			foreach (CellEntry celda in celdas.Entries)
+			{
+				if (celda.Row != 1)
+				{
+					if (celda.Column == 1)
+						item = new string[celdas.ColCount.Count];
+
+					item.SetValue(celda.Value, (int)celda.Column - 1);
+
+					if (celda.Column == celdas.ColCount.Count)
+						listado.Add(item);
+				}
+			}
+			return listado;
+		}
+
 		private void ActualizarInventario()
 		{
 			var servicioGoogle = new ServiciosGoogle();
 			var columnasProductos = CuentaUsuario.ObtenerColumnasProductos()?.Split(',');
-			var producto = new string[columnasProductos.Length];
 			var linkHojaProducto = CuentaUsuario.ObtenerLinkHojaPorNombre("Productos App");
 			var linkHojaProductoHistorico = CuentaUsuario.ObtenerLinkHojaHistoricosParaLinkHoja(linkHojaProducto);
 
+			var productos = ObtenerListado(servicioGoogle, linkHojaProducto);
+			string comentario = "Pedido " + _pedido.Id + " a " + _pedido.Cliente + ". " + _pedido.Comentario;
+
 			foreach (var lineaDetalle in _pedido.Detalle)
             {
-                string comentario = "Pedido " + _pedido.Id + " a " + _pedido.Cliente + ". " + _pedido.Comentario;
-				for(var i = 0; i < columnasProductos?.Length; i++)
+				var producto = new string[columnasProductos.Length];
+				// Buscar datos producto
+				foreach(var prod in productos)
                 {
-					if (i == 0) { producto[0] = lineaDetalle.IdProducto; continue; }
-					if (i == 1) { producto[1] = lineaDetalle.NombreProducto;	continue;}
-					if (i == lineaDetalle.ColumnaStockElegido ) { producto[i] = lineaDetalle.Cantidad; continue; }
-					producto[i] = "-";
+					if(prod[0] == lineaDetalle.IdProducto)
+                    {
+						producto = prod;
+						break;
+					}
 				}
 
 				servicioGoogle.EnviarMovimiento(

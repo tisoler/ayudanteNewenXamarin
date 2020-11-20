@@ -20,7 +20,22 @@
             <ScrollView Orientation="Vertical" VerticalOptions="FillAndExpand" HorizontalOptions="Fill">
 			    <StackLayout x:Name="ContenedorProducto" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0"></StackLayout>
             </ScrollView>
-			<StackLayout x:Name="ContenedorBotones" Spacing="0" Padding="0" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End"></StackLayout>
+            <StackLayout x:Name="ContenedorBotones" HeightRequest="65" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End" Spacing="0" Padding="0">
+                <StackLayout x:Name="BotonMovimientos" BackgroundColor="#FD8A18" VerticalOptions="FillAndExpand" HorizontalOptions="Center">
+                    <StackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="AccederMovimientos" />
+                    </StackLayout.GestureRecognizers>
+                    <Label Text="&#xf1da;" FontSize="Large" TextColor="#ffffff" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="EndAndExpand"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="Small" TextColor="#ffffff" VerticalTextAlignment="Center" VerticalOptions="StartAndExpand">Movimientos</Label>
+                </StackLayout>
+                <StackLayout x:Name="BotonGuardar" BackgroundColor="#32BBF9" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+                    <StackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="EventoGuardarCambios" />
+                    </StackLayout.GestureRecognizers>
+                    <Label Text="&#xf0c7;" FontSize="Large" TextColor="#ffffff" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="EndAndExpand"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="Small" TextColor="#ffffff" VerticalTextAlignment="Center" VerticalOptions="StartAndExpand">Guardar cambios</Label>
+                </StackLayout>
+            </StackLayout>
         </StackLayout>
     </ContentPage.Content>
 

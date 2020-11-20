@@ -18,7 +18,29 @@
                 <SearchBar x:Name="Buscador" IsVisible="False" BackgroundColor="#EDEDED" HorizontalOptions="Fill" TextChanged="FiltrarProductos" SearchButtonPressed="FiltrarProductos" />
             </StackLayout>
             <StackLayout x:Name="ContenedorTabla" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0"></StackLayout>
-            <StackLayout x:Name="ContenedorBotones" Spacing="0" Padding="0" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End"></StackLayout>
+            <StackLayout x:Name="ContenedorBotones" HeightRequest="65" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End" Spacing="0" Padding="0">
+                <StackLayout x:Name="BotonPedidos" BackgroundColor="#FD8A18" VerticalOptions="FillAndExpand" HorizontalOptions="Start">
+                    <StackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="IrPedidos" />
+                    </StackLayout.GestureRecognizers>
+                    <Label Text="&#xf03c;" FontSize="Large" TextColor="#ffffff" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="EndAndExpand"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="Small" TextColor="#ffffff" VerticalTextAlignment="Center" VerticalOptions="StartAndExpand">Pedidos</Label>
+                </StackLayout>
+                <StackLayout x:Name="BotonRefrescar" BackgroundColor="#32BBF9" VerticalOptions="FillAndExpand" HorizontalOptions="Center">
+                    <StackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="EventoRefrescarDatos" />
+                    </StackLayout.GestureRecognizers>
+                    <Label Text="&#xf01e;" FontSize="Large" TextColor="#ffffff" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="EndAndExpand"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="Small" TextColor="#ffffff" VerticalTextAlignment="Center" VerticalOptions="StartAndExpand">Refrescar</Label>
+                </StackLayout>
+                <StackLayout x:Name="BotonEscaner" BackgroundColor="#FD8A18" VerticalOptions="FillAndExpand" HorizontalOptions="End">
+                    <StackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="AbrirPaginaEscaner" />
+                    </StackLayout.GestureRecognizers>
+                    <Label Text="&#xf02a;" FontSize="Large" TextColor="#ffffff" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="EndAndExpand"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="Small" TextColor="#ffffff" VerticalTextAlignment="Center" VerticalOptions="StartAndExpand">Leer código</Label>
+                </StackLayout>
+            </StackLayout>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

@@ -20,10 +20,8 @@ namespace AyudanteNewen.Vistas
 		private ViewCell _ultimoItemSeleccionado;
 		private Color _ultimoColorSeleccionado;
 		private ActivityIndicator _indicadorActividad;
-		private Image _refrescar;
-		private Image _crearPedido;
 		private List<Clases.Pedido> _listaPedidos;
-        private List<string[]> _pedidos;
+        // private List<string[]> _pedidos;
 		private CellFeed _celdas;
 
 		// Constructor para Hoja de cálculo de Google
@@ -179,23 +177,9 @@ namespace AyudanteNewen.Vistas
 
 		private void ConfigurarBotones()
 		{
-			_refrescar = App.Instancia.ObtenerImagen(TipoImagen.BotonRefrescarDatos);
-			_refrescar.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(AccionRefrescarDatos),
-					NumberOfTapsRequired = 1
-				}
-			);
-			_crearPedido = App.Instancia.ObtenerImagen(TipoImagen.BotonEscanearCodigo);
-			_crearPedido.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(CrearPedido),
-					NumberOfTapsRequired = 1
-				}
-			);
-
-			ContenedorBotones.Children.Add(_refrescar);
-			ContenedorBotones.Children.Add(_crearPedido);
+			var anchoBoton = App.AnchoRetratoDePantalla / 2;
+			BotonRefrescar.WidthRequest = anchoBoton;
+			BotonNuevoPedido.WidthRequest = anchoBoton;
 		}
 
 		private void LlenarGrillaDePedidos(List<string[]> pedidos, bool esBusqueda = false)
@@ -360,7 +344,7 @@ namespace AyudanteNewen.Vistas
 			// Si hay más de 25 pedidos se muestra el buscador
 			if (pedidos.Count <= 25) return;
 			// Almacena la lista de pedidos en la variable global que usará el buscador
-			_pedidos = pedidos;
+			// _pedidos = pedidos;
 		}
 
 		private void RefrescarUIGrilla()
@@ -370,42 +354,40 @@ namespace AyudanteNewen.Vistas
 			ContenedorTabla.Children.Add(_indicadorActividad);
 		}
 
-		private void RefrescarDatos()
-		{
-			RefrescarUIGrilla();
-
-			if (CuentaUsuario.ObtenerAccesoDatos() == "G")
-				ObtenerDatosPedidosDesdeHCG();
-			else
-				ObtenerPedidosDesdeBD();
-		}
-
 		#endregion
 
 		#region Eventos
-
-		[Android.Runtime.Preserve]
-		private void AccionRefrescarDatos()
+		private void RefrescarDatos(object sender, EventArgs e)
 		{
-			_refrescar.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(100), () =>
+			BotonRefrescar.BackgroundColor = Color.FromHex("#32CEF9");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
 			{
-				RefrescarDatos();
-				_refrescar.Opacity = 1f;
+				RefrescarUIGrilla();
+
+				if (CuentaUsuario.ObtenerAccesoDatos() == "G")
+					ObtenerDatosPedidosDesdeHCG();
+				else
+					ObtenerPedidosDesdeBD();
+				BotonRefrescar.BackgroundColor = Color.FromHex("#32BBF9");
 				return false;
 			});
 		}
 
-		[Android.Runtime.Preserve]
-		private async void CrearPedido()
+		private void CrearPedido(object sender, EventArgs e)
 		{
-			await Navigation.PushAsync(new NuevoPedido(_servicio, _listaPedidos), true);
+			BotonNuevoPedido.BackgroundColor = Color.FromHex("#FB9F0B");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
+			{
+				Navigation.PushAsync(new NuevoPedido(_servicio, _listaPedidos), true);
+				BotonNuevoPedido.BackgroundColor = Color.FromHex("#FD8A18");
+				return false;
+			});
 		}
 
 		// Cuando carga la página.
 		protected override void OnAppearing()
 		{
-			RefrescarDatos();
+			RefrescarDatos(null, null);
 		}
 
 		#endregion

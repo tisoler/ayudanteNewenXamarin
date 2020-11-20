@@ -28,9 +28,6 @@ namespace AyudanteNewen.Vistas
 		private List<string[]> _productos;
 		private bool _esCargaInicial = true;
 		private ActivityIndicator _indicadorActividad;
-		private Image _accesoDatos;
-		private Image _refrescar;
-		private Image _escanearCodigo;
 		private Picker _listaHojas;
 		private double _anchoActual;
 
@@ -90,7 +87,7 @@ namespace AyudanteNewen.Vistas
 				IsBusy = false; //Remueve el Indicador de Actividad.
 			}
 
-			_nombresColumnas = new string[_celdas.ColCount.Count];
+			_nombresColumnas = CuentaUsuario.ObtenerColumnasProductos()?.Split(',');
 
 			var productos = new List<string[]>();
 			var producto = new string[_celdas.ColCount.Count];
@@ -107,8 +104,6 @@ namespace AyudanteNewen.Vistas
 					if (celda.Column == _celdas.ColCount.Count)
 						productos.Add(producto);
 				}
-				else
-					_nombresColumnas.SetValue(celda.Value, (int)celda.Column - 1);
 			}
 
 			LlenarGrillaDeProductos(productos);
@@ -236,31 +231,10 @@ namespace AyudanteNewen.Vistas
 
 		private void ConfigurarBotones()
 		{
-			_accesoDatos = App.Instancia.ObtenerImagen(TipoImagen.BotonAccesoDatos);
-			_accesoDatos.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(AccederDatos),
-					NumberOfTapsRequired = 1
-				}
-			);
-			_refrescar = App.Instancia.ObtenerImagen(TipoImagen.BotonRefrescarDatos);
-			_refrescar.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(RefrescarDatos),
-					NumberOfTapsRequired = 1
-				}
-			);
-			_escanearCodigo = App.Instancia.ObtenerImagen(TipoImagen.BotonEscanearCodigo);
-			_escanearCodigo.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(AbrirPaginaEscaner),
-					NumberOfTapsRequired = 1
-				}
-			);
-
-			ContenedorBotones.Children.Add(_accesoDatos);
-			ContenedorBotones.Children.Add(_refrescar);
-			ContenedorBotones.Children.Add(_escanearCodigo);
+			var anchoBoton = App.AnchoRetratoDePantalla / 3;
+			BotonPedidos.WidthRequest = anchoBoton;
+			BotonRefrescar.WidthRequest = anchoBoton;
+			BotonEscaner.WidthRequest = anchoBoton;
 		}
 
 		private void LlenarGrillaDeProductos(List<string[]> productos, bool esBusqueda = false)
@@ -489,35 +463,6 @@ namespace AyudanteNewen.Vistas
 				ObtenerProductosDesdeBD(); //Base de Datos
 		}
 
-		#endregion
-
-		#region Eventos
-
-		[Android.Runtime.Preserve]
-		private void AccederDatos()
-		{
-			_accesoDatos.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
-			{
-				var paginaAccesoDatos = new AccesoDatos();
-				Navigation.PushAsync(paginaAccesoDatos, true);
-				_accesoDatos.Opacity = 1f;
-				return false;
-			});
-		}
-
-		[Android.Runtime.Preserve]
-		private void RefrescarDatos()
-		{
-			_refrescar.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(100), () =>
-			{
-				RefrescarDatos(true);
-				_refrescar.Opacity = 1f;
-				return false;
-			});
-		}
-
 		private async void RefrescarLugCompVtas_RelacionInsProd()
 		{
 			if (CuentaUsuario.ValidarTokenDeGoogle())
@@ -534,43 +479,69 @@ namespace AyudanteNewen.Vistas
 			}
 		}
 
+		#endregion
+
+		#region Eventos
+
 		[Android.Runtime.Preserve]
-		private async void AbrirPaginaEscaner()
+		private  void IrPedidos(object sender, EventArgs args)
 		{
-			_escanearCodigo.Opacity = 0.5f;
-			await Navigation.PushAsync(new PedidosGrilla(_servicio), true);
-			//Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
-			//{
-			//	var paginaEscaner = new ZXingScannerPage();
+			BotonPedidos.BackgroundColor = Color.FromHex("#FB9F0B");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
+			{
+				Navigation.PushAsync(new PedidosGrilla(_servicio), true);
+				BotonPedidos.BackgroundColor = Color.FromHex("#FD8A18");
+				return false;
+			});
+		}
 
-			//	paginaEscaner.OnScanResult += (result) =>
-			//	{
-			//		// Detiene el escaner
-			//		paginaEscaner.IsScanning = false;
+		[Android.Runtime.Preserve]
+		private void EventoRefrescarDatos(object sender, EventArgs args)
+		{
+			BotonRefrescar.BackgroundColor = Color.FromHex("#32CEF9");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
+			{
+				RefrescarDatos(true);
+				BotonRefrescar.BackgroundColor = Color.FromHex("#32BBF9");
+				return false;
+			});
+		}
 
-			//		//Hace autofoco, particularmente para los códigos de barra
-			//		var ts = new TimeSpan(0, 0, 0, 3, 0);
-			//		Device.StartTimer(ts, () =>
-			//		{
-			//			if (paginaEscaner.IsScanning)
-			//				paginaEscaner.AutoFocus();
-			//			return true;
-			//		});
+		[Android.Runtime.Preserve]
+		private void AbrirPaginaEscaner(object sender, EventArgs args)
+		{
+			BotonEscaner.BackgroundColor = Color.FromHex("#FB9F0B");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
+			{
+				var paginaEscaner = new ZXingScannerPage();
 
-			//		// Cierra la página del escaner y llama a la página del producto
-			//		Device.BeginInvokeOnMainThread(() =>
-			//		{
-			//			Navigation.PopModalAsync();
-			//			IrAlProducto(result.Text);
-			//		});
-			//	};
+				paginaEscaner.OnScanResult += (result) =>
+				{
+					// Detiene el escaner
+					paginaEscaner.IsScanning = false;
 
-			//	// Abre la página del escaner
-			//	Navigation.PushModalAsync(paginaEscaner);
+					//Hace autofoco, particularmente para los códigos de barra
+					var ts = new TimeSpan(0, 0, 0, 3, 0);
+					Device.StartTimer(ts, () =>
+					{
+						if (paginaEscaner.IsScanning)
+							paginaEscaner.AutoFocus();
+						return true;
+					});
 
-			//	_escanearCodigo.Opacity = 1f;
-			//	return false;
-			//});
+					// Cierra la página del escaner y llama a la página del producto
+					Device.BeginInvokeOnMainThread(() =>
+					{
+						Navigation.PopModalAsync();
+						IrAlProducto(result.Text);
+					});
+				};
+
+				// Abre la página del escaner
+				Navigation.PushModalAsync(paginaEscaner);
+				BotonEscaner.BackgroundColor = Color.FromHex("#FD8A18");
+				return false;
+			});
 		}
 
 		[Android.Runtime.Preserve]

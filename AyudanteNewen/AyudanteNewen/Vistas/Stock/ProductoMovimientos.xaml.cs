@@ -17,7 +17,6 @@ namespace AyudanteNewen.Vistas
 		private readonly ServiciosGoogle _servicioGoogle;
 		private string[] _nombresColumnas;
 		private ActivityIndicator _indicadorActividad;
-		private Image _listo;
 
 		public ProductoMovimientos(string[] producto, SpreadsheetsService servicio)
 		{
@@ -41,7 +40,6 @@ namespace AyudanteNewen.Vistas
 		private void InicializarValoresGenerales()
 		{
 			SombraEncabezado.Source = ImageSource.FromResource(App.RutaImagenSombraEncabezado);
-			ConfigurarBotones();
 
 			if (_productoString.Length > 1)
 				Titulo.Text += " " + _productoString[1];
@@ -54,18 +52,6 @@ namespace AyudanteNewen.Vistas
 			};
 			_indicadorActividad.SetBinding(IsVisibleProperty, "IsBusy");
 			_indicadorActividad.SetBinding(ActivityIndicator.IsRunningProperty, "IsBusy");
-		}
-
-		private void ConfigurarBotones()
-		{
-			_listo = App.Instancia.ObtenerImagen(TipoImagen.BotonListo);
-			_listo.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(Listo),
-					NumberOfTapsRequired = 1
-				}
-			);
-			ContenedorBotones.Children.Add(_listo);
 		}
 
 		private async void ObtenerDatosMovimientosDesdeHCG()
@@ -149,9 +135,11 @@ namespace AyudanteNewen.Vistas
 				esTeclaPar = !esTeclaPar;
 			}
 
+			var anchoColumnaEliminar = App.AnchoRetratoDePantalla / 6;
+			var anchoColumnaDatos = anchoColumnaEliminar * 5;
 			var vista = new ListView
 			{
-				RowHeight = 65,
+				RowHeight = 100,
 				VerticalOptions = LayoutOptions.StartAndExpand,
 				HorizontalOptions = LayoutOptions.Fill,
 				ItemsSource = listaMovimientos,
@@ -161,7 +149,8 @@ namespace AyudanteNewen.Vistas
 					{
 						FontSize = 15,
 						TextColor = Color.FromHex("#1D1D1B"),
-						VerticalOptions = LayoutOptions.CenterAndExpand
+						VerticalOptions = LayoutOptions.CenterAndExpand,
+						WidthRequest = anchoColumnaDatos
 					};
 					datos.SetBinding(Label.TextProperty, "Datos");
 
@@ -172,20 +161,34 @@ namespace AyudanteNewen.Vistas
 						HeightRequest = 55
 					};
 
-					var botonEliminar = new Image
+					var etiquetaIconoEliminar = new Label
 					{
-						VerticalOptions = LayoutOptions.CenterAndExpand,
-						Source = ImageSource.FromResource("AyudanteNewen.Imagenes.eliminar.png"),
-						HorizontalOptions = LayoutOptions.CenterAndExpand,
+						FontFamily = "FontAwesome5Solid.otf#Regular",
+						HorizontalTextAlignment = TextAlignment.Center,
+						FontSize = 22,
+						TextColor = Color.FromHex("#ffffff"),
+						VerticalTextAlignment = TextAlignment.Center,
+						VerticalOptions = LayoutOptions.EndAndExpand,
+						Text = "\uf2ed"
+					};
+
+					var etiquetaEliminar = new Label
+					{
+						HorizontalTextAlignment = TextAlignment.Center,
+						FontSize = 14,
+						TextColor = Color.FromHex("#ffffff"),
+						VerticalTextAlignment = TextAlignment.Center,
+						VerticalOptions = LayoutOptions.StartAndExpand,
+						Text = "Eliminar"
 					};
 
 					var contenedorEliminar = new StackLayout
 					{
-						WidthRequest = 65,
-						Orientation = StackOrientation.Horizontal,
-						Children = { botonEliminar }
+						WidthRequest = anchoColumnaEliminar,
+						Orientation = StackOrientation.Vertical,
+						Children = { etiquetaIconoEliminar, etiquetaEliminar },
+						BackgroundColor = Color.FromHex("#FD8A18")
 					};
-					contenedorEliminar.SetBinding(BackgroundColorProperty, "ColorFondo");
 					contenedorEliminar.SetBinding(ClassIdProperty, "IdMovimiento");
 					contenedorEliminar.GestureRecognizers.Add(new TapGestureRecognizer(EliminarMovimiento));
 
@@ -220,10 +223,10 @@ namespace AyudanteNewen.Vistas
 			var tacho = (StackLayout)boton;
 			var fila = Convert.ToInt32(tacho.ClassId);
 
-			tacho.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
+			tacho.BackgroundColor = Color.FromHex("#FB9F0B");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
 			{
-				tacho.Opacity = 1f;
+				tacho.BackgroundColor = Color.FromHex("#FD8A18");
 				return false;
 			});
 
@@ -246,14 +249,13 @@ namespace AyudanteNewen.Vistas
 		}
 
 		[Android.Runtime.Preserve]
-		private void Listo()
+		private void Listo(object sender, EventArgs e)
 		{
-			_listo.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
+			BotonListo.BackgroundColor = Color.FromHex("#32CEF9");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
 			{
 				Navigation.PopAsync();
-
-				_listo.Opacity = 1f;
+				BotonListo.BackgroundColor = Color.FromHex("#32BBF9");
 				return false;
 			});
 		}
@@ -267,7 +269,7 @@ namespace AyudanteNewen.Vistas
 		public ClaseMovimiento(int idMovimiento, IList<string> datos, bool esTeclaPar)
 		{
 			IdMovimiento = idMovimiento;
-			Datos = string.Join(" - ", datos);
+			Datos = string.Join(" | ", datos);
 			ColorFondo = esTeclaPar ? Color.FromHex("#EDEDED") : Color.FromHex("#E2E2E1");
 		}
 

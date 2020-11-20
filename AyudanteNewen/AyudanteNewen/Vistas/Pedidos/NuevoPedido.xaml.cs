@@ -7,6 +7,7 @@ using AyudanteNewen.Servicios;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace AyudanteNewen.Vistas
 {
@@ -16,10 +17,11 @@ namespace AyudanteNewen.Vistas
 		private readonly ServiciosGoogle _servicioGoogle;
 		private List<string[]> _clientes;
 		private List<string[]> _productos;
-		private List<DetallePedido> _listaProducto;
+		private ObservableCollection<DetallePedido> _listaProducto;
 		private string _mensaje;
 		private ActivityIndicator _indicadorActividad;
 		List<Clases.Pedido> _listaPedidos;
+		Dictionary<string, uint> _valoreComboInventarios;
 
 		public NuevoPedido(SpreadsheetsService servicio, List<Clases.Pedido> listaPedidos)
 		{
@@ -27,7 +29,7 @@ namespace AyudanteNewen.Vistas
 			_servicioGoogle = new ServiciosGoogle();
 			_servicio = servicio;
 			ObtenerDatosClientesDesdeHCG();
-			_listaProducto = new List<DetallePedido>();
+			_listaProducto = new ObservableCollection<DetallePedido>();
 			_listaPedidos = listaPedidos;
 
 			_indicadorActividad = new ActivityIndicator
@@ -133,6 +135,7 @@ namespace AyudanteNewen.Vistas
 
 		private StackLayout ObtenerControlProducto(double anchoEtiqueta, double anchoCampo, int altoCampos)
 		{
+			// Producto
 			var etiquetaNuevoProducto = new Label
 			{
 				HorizontalOptions = LayoutOptions.EndAndExpand,
@@ -165,6 +168,7 @@ namespace AyudanteNewen.Vistas
 				Children = { etiquetaNuevoProducto, comboProductos }
 			};
 
+			//Cantidad
 			var etiquetaCantidad = new Label
 			{
 				HorizontalOptions = LayoutOptions.EndAndExpand,
@@ -195,6 +199,50 @@ namespace AyudanteNewen.Vistas
 				Children = { etiquetaCantidad, campoCantidad }
 			};
 
+			// Lugares Inventario
+			var etiquetaInventario = new Label
+			{
+				HorizontalOptions = LayoutOptions.EndAndExpand,
+				VerticalOptions = LayoutOptions.Center,
+				HorizontalTextAlignment = TextAlignment.End,
+				Text = "Lugar stock",
+				FontSize = 16,
+				WidthRequest = anchoEtiqueta,
+				TextColor = Color.Black
+			};
+
+			var columnasInventario = CuentaUsuario.ObtenerColumnasInventario();
+			var listaColumnasInventario = !string.IsNullOrEmpty(columnasInventario) ? columnasInventario.Split(',') : null;
+			var columnasProductos = CuentaUsuario.ObtenerColumnasProductos()?.Split(',');
+			_valoreComboInventarios = new Dictionary<string, uint>();
+			for (uint i = 0; i < listaColumnasInventario.Length; i++)
+			{
+				if (listaColumnasInventario[i] == "1")
+					_valoreComboInventarios[columnasProductos[i]] = i;
+			}
+
+			var comboInventarios = new Picker
+			{
+				HorizontalOptions = LayoutOptions.CenterAndExpand,
+				VerticalOptions = LayoutOptions.Center,
+				StyleId = "comboInventario",
+				WidthRequest = anchoCampo - 55
+			};
+			foreach (var inventario in _valoreComboInventarios)
+			{
+				comboInventarios.Items.Add(inventario.Key);
+			}
+
+			var vistaInventarios = new StackLayout
+			{
+				VerticalOptions = LayoutOptions.Start,
+				HorizontalOptions = LayoutOptions.Fill,
+				Orientation = StackOrientation.Horizontal,
+				HeightRequest = altoCampos,
+				Children = { etiquetaInventario, comboInventarios }
+			};
+
+			// Botón guardar
 			var botonGuardarProducto = new Button
 			{
 				Text = "Agregar producto",
@@ -213,8 +261,8 @@ namespace AyudanteNewen.Vistas
 				VerticalOptions = LayoutOptions.Start,
 				HorizontalOptions = LayoutOptions.Fill,
 				Orientation = StackOrientation.Vertical,
-				HeightRequest = altoCampos * 3,
-				Children = { vistaProducto, vistaCantidad, botonGuardarProducto }
+				HeightRequest = altoCampos * 4,
+				Children = { vistaProducto, vistaCantidad, vistaInventarios, botonGuardarProducto }
 			};
 		}
 
@@ -296,11 +344,11 @@ namespace AyudanteNewen.Vistas
 						Padding = 3,
 						Orientation = StackOrientation.Horizontal,
 						Children = {
-							ObtenerEtiquetaDato("NombreProducto", (int)anchoColumna),
+							ObtenerEtiquetaDato("NombreProducto", anchoColumna),
 							ObtenerSeparado(altoTeja),
-							ObtenerEtiquetaDato("Cantidad", (int)anchoColumna),
+							ObtenerEtiquetaDato("Cantidad", anchoColumna),
 							ObtenerSeparado(altoTeja),
-							ObtenerEtiquetaDato("Precio", (int)anchoColumna)
+							ObtenerEtiquetaDato("Precio", anchoColumna)
 						}
 					};
 					tecla.SetBinding(BackgroundColorProperty, "ColorFondo");
@@ -337,33 +385,18 @@ namespace AyudanteNewen.Vistas
 			};
 		}
 
-		private Button ObtenerControlGuardar()
-		{
-			var botonGuardarPedido = new Button
-			{
-				Text = "Guardar",
-				VerticalOptions = LayoutOptions.End,
-				HorizontalOptions = LayoutOptions.Fill,
-				HeightRequest = 65,
-				FontSize = 16,
-				BackgroundColor = Color.FromHex("#32CEF9")
-			};
-			botonGuardarPedido.Clicked += GuardarPedido;
-			return botonGuardarPedido;
-		}
-
 		private void ConstruirVista()
 		{
 			var anchoEtiqueta = App.AnchoRetratoDePantalla / 3 - 10;
 			var anchoCampo = App.AnchoRetratoDePantalla / 3 * 2 - 30;
-			var altoCampos = 55;
+			var altoCampos = 50;
 
 			//  Combo Cliente
 			var vistaCliente = ObtenerControlCliente(anchoEtiqueta, anchoCampo, altoCampos);
 			// Controles para agregar producto
 			var vistaNuevoProducto = ObtenerControlProducto(anchoEtiqueta, anchoCampo, altoCampos);
 			// Encabezado grilla
-			var anchoGrilla = (int)(App.AnchoRetratoDePantalla * 0.9);
+			var anchoGrilla = (int)(App.AnchoRetratoDePantalla * 0.99);
 			var altoGrilla = (int)(App.AnchoApaisadoDePantalla * 0.25); // AnchoApaisadoDePantalla es el alto en retrato
 			var anchoColumna = anchoGrilla / 3 - 2; // - 2 por el divisor (2px)
 			var vistaEncabezadoGrilla = ObtenerEncabezadoGrilla(anchoColumna);
@@ -371,8 +404,6 @@ namespace AyudanteNewen.Vistas
 			var vistaGrillaProducto = ObtenerDetalleGrilla(anchoGrilla, altoGrilla, anchoColumna);
 			// Total
 			var vistaTotal = ObtenerControlTotal(anchoEtiqueta, altoCampos);
-			// Botón Guardar
-			var botonGuardar = ObtenerControlGuardar();
 
 			Device.BeginInvokeOnMainThread(() =>
 			{
@@ -382,7 +413,6 @@ namespace AyudanteNewen.Vistas
 				ContenedorPedido.Children.Add(vistaEncabezadoGrilla);
 				ContenedorPedido.Children.Add(vistaGrillaProducto);
 				ContenedorPedido.Children.Add(vistaTotal);
-				ContenedorPedido.Children.Add(botonGuardar);
 			});
 		}
 
@@ -404,19 +434,23 @@ namespace AyudanteNewen.Vistas
 		{
 			var comboProducto = (Picker)BuscarControlEnHijos(ContenedorPedido, "comboProducto");
 			var campoCantidad = (Entry)BuscarControlEnHijos(ContenedorPedido, "campoCantidad");
-			if (comboProducto.SelectedIndex < 0 || string.IsNullOrEmpty(campoCantidad.Text))
+			var comboInventario = (Picker)BuscarControlEnHijos(ContenedorPedido, "comboInventario");
+
+			if (comboProducto.SelectedIndex < 0 || string.IsNullOrEmpty(campoCantidad.Text) || comboInventario.SelectedIndex < 0)
 			{
 				DisplayAlert("Produto", "Debe ingresar un producto y su cantidad.", "Listo");
 				return;
 			}
 			var producto = _productos[comboProducto.SelectedIndex];
 			var cantidad = campoCantidad.Text;
+			var valorComboInvetarioElegido = comboInventario.Items[comboInventario.SelectedIndex];
+			var lugarInventarioElegido = _valoreComboInventarios[valorComboInvetarioElegido];
 			_listaProducto.Add(new DetallePedido() {
 				IdProducto = producto[0],
 				NombreProducto = producto[1],
 				Cantidad = cantidad,
 				Precio = (Convert.ToDouble(producto[2]) * Convert.ToDouble(cantidad)).ToString(),
-				ColumnaStockElegido = 1 // HACER - Usar columnasNombre y columnasInventario para agregar combo de stock
+				ColumnaStockElegido = lugarInventarioElegido
 			});
 
 			var total = 0.0;
@@ -428,8 +462,8 @@ namespace AyudanteNewen.Vistas
 			etiquetaTotal.Text = "Total: " + total;
 		}
 
-		private async void GuardarPedido(object sender, EventArgs e)
-		{
+		private async void GuardarPedido()
+        {
 			var comboCliente = (Picker)BuscarControlEnHijos(ContenedorPedido, "comboCliente");
 			if (comboCliente.SelectedIndex < 0)
 			{
@@ -446,6 +480,17 @@ namespace AyudanteNewen.Vistas
 
 			await Navigation.PopAsync();
 			await DisplayAlert("Pedido", _mensaje, "Listo");
+		}
+
+		private void EventoGuardarPedido(object sender, EventArgs e)
+		{
+			BotonGuardar.BackgroundColor = Color.FromHex("#32CEF9");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
+			{
+				GuardarPedido();
+				BotonGuardar.BackgroundColor = Color.FromHex("#32BBF9");
+				return false;
+			});
 		}
 
 		private async Task TareaGuardarPedido(Picker comboCliente)
@@ -492,7 +537,7 @@ namespace AyudanteNewen.Vistas
 				Fecha = DateTime.Now.ToString("dd/MM/yyyy"),
 				IdCliente = idCliente,
 				Cliente = cliente,
-				Detalle = _listaProducto,
+				Detalle = _listaProducto.ToList(),
 				FechaEntrega = DateTime.Now.ToString("dd/MM/yyyy"),
 				Estado = "Pendiente",
 				Usuario = CuentaUsuario.ObtenerNombreUsuarioGoogle() ?? "-",

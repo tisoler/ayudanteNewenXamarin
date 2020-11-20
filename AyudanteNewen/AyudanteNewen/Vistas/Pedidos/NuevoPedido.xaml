@@ -15,6 +15,15 @@
                 </StackLayout>
             </StackLayout>
             <StackLayout x:Name="ContenedorPedido" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0"></StackLayout>
+            <StackLayout x:Name="ContenedorBotones" HeightRequest="65" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End" Spacing="0" Padding="0">
+                <StackLayout x:Name="BotonGuardar" BackgroundColor="#32BBF9" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+                    <StackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="EventoGuardarPedido" />
+                    </StackLayout.GestureRecognizers>
+                    <Label Text="&#xf0c7;" FontSize="Large" TextColor="#ffffff" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="EndAndExpand"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="Small" TextColor="#ffffff" VerticalTextAlignment="Center" VerticalOptions="StartAndExpand">Guardar</Label>
+                </StackLayout>
+            </StackLayout>
         </StackLayout>
     </ContentPage.Content>
 

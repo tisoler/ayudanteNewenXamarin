@@ -158,7 +158,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Imagenes\refrescarHoja.png" />
     <EmbeddedResource Include="Vistas\Stock\PaginaGrilla.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
@@ -213,11 +212,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Imagenes\accesoDatos.png" />
-    <EmbeddedResource Include="Imagenes\escanearCodigo.png" />
-    <EmbeddedResource Include="Imagenes\refrescarDatos.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Imagenes\sombraEncabezado.png" />
   </ItemGroup>
   <ItemGroup>
@@ -225,10 +219,6 @@
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Imagenes\hojaHistoricos.png" />
-    <EmbeddedResource Include="Imagenes\hojaInventario.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Vistas\ConfiguracionDrive\OpcionPuntosVenta.xaml">
@@ -243,26 +233,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Imagenes\hojaPtoVta.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Vistas\Stock\ProductoMovimientos.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Imagenes\eliminar.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Imagenes\guardarCambios.png" />
-    <EmbeddedResource Include="Imagenes\movimientos.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Imagenes\volver.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Imagenes\listo.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Vistas\Pedidos\Pedido.xaml">

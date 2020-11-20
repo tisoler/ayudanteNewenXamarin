@@ -40,7 +40,7 @@ namespace AyudanteNewen.Clases
                             lineaDetalle.Precio = valor;
                             break;
                         case "columnaStockElegido":
-                            lineaDetalle.ColumnaStockElegido = Convert.ToUInt32(valor) - 1;
+                            lineaDetalle.ColumnaStockElegido = Convert.ToUInt32(valor);
                             break;
                     }
                 }

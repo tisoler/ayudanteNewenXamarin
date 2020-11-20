@@ -14,8 +14,15 @@
         </StackLayout>
 			<StackLayout x:Name="ContenedorMovimientos" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0">
 			</StackLayout>
-			<StackLayout x:Name="ContenedorBotones" Spacing="0" Padding="0" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End">
-			</StackLayout>
+            <StackLayout x:Name="ContenedorBotones" HeightRequest="65" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End" Spacing="0" Padding="0">
+                <StackLayout x:Name="BotonListo" BackgroundColor="#32BBF9" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+                    <StackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="Listo" />
+                    </StackLayout.GestureRecognizers>
+                    <Label Text="&#xf00c;" FontSize="Large" TextColor="#ffffff" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="EndAndExpand"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="Small" TextColor="#ffffff" VerticalTextAlignment="Center" VerticalOptions="StartAndExpand">Listo</Label>
+                </StackLayout>
+            </StackLayout>
         </StackLayout>
     </ContentPage.Content>
 

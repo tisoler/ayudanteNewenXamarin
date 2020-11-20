@@ -10,7 +10,22 @@
                 <Image x:Name="SombraEncabezado" HorizontalOptions="FillAndExpand" Aspect="AspectFill"></Image>
             </StackLayout>
             <StackLayout x:Name="ContenedorTabla" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0"></StackLayout>
-            <StackLayout x:Name="ContenedorBotones" Spacing="0" Padding="0" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End"></StackLayout>
+            <StackLayout x:Name="ContenedorBotones" HeightRequest="65" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End" Spacing="0" Padding="0">
+                <StackLayout x:Name="BotonRefrescar" BackgroundColor="#32BBF9" VerticalOptions="FillAndExpand" HorizontalOptions="Center">
+                    <StackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="RefrescarDatos" />
+                    </StackLayout.GestureRecognizers>
+                    <Label Text="&#xf01e;" FontSize="Large" TextColor="#ffffff" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="EndAndExpand"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="Small" TextColor="#ffffff" VerticalTextAlignment="Center" VerticalOptions="StartAndExpand">Refrescar</Label>
+                </StackLayout>
+                <StackLayout x:Name="BotonNuevoPedido" BackgroundColor="#FD8A18" VerticalOptions="FillAndExpand" HorizontalOptions="End">
+                    <StackLayout.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="CrearPedido" />
+                    </StackLayout.GestureRecognizers>
+                    <Label Text="&#xf0ae;" FontSize="Large" TextColor="#ffffff" FontFamily="{StaticResource FontAwesomeSolid}" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" VerticalOptions="EndAndExpand"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="Small" TextColor="#ffffff" VerticalTextAlignment="Center" VerticalOptions="StartAndExpand">Nuevo pedido</Label>
+                </StackLayout>
+            </StackLayout>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

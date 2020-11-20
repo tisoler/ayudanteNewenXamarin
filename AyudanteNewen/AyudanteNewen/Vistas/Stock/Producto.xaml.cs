@@ -17,7 +17,6 @@ namespace AyudanteNewen.Vistas
 		private double[] _precios;
 		private string[] _lugares;
 		private string _comentario;
-		private readonly CellEntry[] _producto;
 		private string[] _listaColumnasInventario;
 		private string[] _listaLugares;
 		private readonly string[] _productoString;
@@ -25,9 +24,6 @@ namespace AyudanteNewen.Vistas
 		private readonly string[] _nombresColumnas;
 		private string _mensaje = "";
 		private ActivityIndicator _indicadorActividad;
-		private Image _volver;
-		private Image _movimientos;
-		private Image _guardarCambios;
 
 		public Producto(CellEntry[] producto, string[] nombresColumnas, SpreadsheetsService servicio, string titulo)
 		{
@@ -36,7 +32,6 @@ namespace AyudanteNewen.Vistas
 			// Almacenar el arreglo de strings para obtener el nivel de stock y para cargar el producto en pantalla
 			_productoString = ObtenerArregloCeldasProducto(producto);
 			InicializarValoresGenerales();
-			_producto = producto;
 			_servicio = servicio;
 			Titulo.Text += " " + titulo.Replace("App", "").Replace("es ", " ").Replace("s ", " ");
 
@@ -116,31 +111,9 @@ namespace AyudanteNewen.Vistas
 
         private void ConfigurarBotones()
 		{
-			_volver = App.Instancia.ObtenerImagen(TipoImagen.BotonVolver);
-			_volver.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(Volver),
-					NumberOfTapsRequired = 1
-				}
-			);
-			_movimientos = App.Instancia.ObtenerImagen(TipoImagen.BotonMovimientos);
-			_movimientos.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(AccederMovimientos),
-					NumberOfTapsRequired = 1
-				}
-			);
-			_guardarCambios = App.Instancia.ObtenerImagen(TipoImagen.BotonGuardarCambios);
-			_guardarCambios.GestureRecognizers.Add(new TapGestureRecognizer
-				{
-					Command = new Command(EventoGuardarCambios),
-					NumberOfTapsRequired = 1
-				}
-			);
-
-			ContenedorBotones.Children.Add(_volver);
-			ContenedorBotones.Children.Add(_movimientos);
-			ContenedorBotones.Children.Add(_guardarCambios);
+			var anchoBoton = App.AnchoRetratoDePantalla / 2;
+			BotonMovimientos.WidthRequest = anchoBoton;
+			BotonGuardar.WidthRequest = anchoBoton;
 		}
 
 		private void ConstruirVistaDeProducto()
@@ -398,18 +371,6 @@ namespace AyudanteNewen.Vistas
 			_signoPositivo.SetValue(boton.Text.ToLower() == "ingreso", columna);
 		}
 
-		[Android.Runtime.Preserve]
-		private void EventoGuardarCambios()
-		{
-			_guardarCambios.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
-			{
-				GuardarCambios();
-				_guardarCambios.Opacity = 1f;
-				return false;
-			});
-		}
-
 		private async void GuardarCambios()
 		{
 			try
@@ -500,25 +461,25 @@ namespace AyudanteNewen.Vistas
 		}
 
 		[Android.Runtime.Preserve]
-		private void AccederMovimientos()
+		private void AccederMovimientos(object sender, EventArgs e)
 		{
-			_movimientos.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
+			BotonMovimientos.BackgroundColor = Color.FromHex("#FB9F0B");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
 			{
 				Navigation.PushAsync(new ProductoMovimientos(_productoString, _servicio), true);
-				_movimientos.Opacity = 1f;
+				BotonMovimientos.BackgroundColor = Color.FromHex("#FD8A18");
 				return false;
 			});
 		}
 
 		[Android.Runtime.Preserve]
-		private void Volver()
+		private void EventoGuardarCambios(object sender, EventArgs e)
 		{
-			_volver.Opacity = 0.5f;
-			Device.StartTimer(TimeSpan.FromMilliseconds(300), () =>
+			BotonGuardar.BackgroundColor = Color.FromHex("#32CEF9");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
 			{
-				Navigation.PopAsync();
-				_volver.Opacity = 1f;
+				GuardarCambios();
+				BotonGuardar.BackgroundColor = Color.FromHex("#32BBF9");
 				return false;
 			});
 		}
@@ -544,8 +505,18 @@ namespace AyudanteNewen.Vistas
 							precio = multiplicador * cantidad;
 
 						//Ingresa el movimiento de existencia (entrada - salida) en la tabla principal
-						servicioGoogle.EnviarMovimiento(_servicio, columnaCelda, multiplicador * cantidad, precio, lugar, _comentario, _productoString, _nombresColumnas,
-							_listaColumnasInventario, CuentaUsuario.ObtenerLinkHojaHistoricos());
+						servicioGoogle.EnviarMovimiento(
+							_servicio,
+							columnaCelda,
+							multiplicador * cantidad,
+							precio,
+							lugar,
+							_comentario,
+							_productoString,
+							_nombresColumnas,
+							_listaColumnasInventario,
+							CuentaUsuario.ObtenerLinkHojaHistoricos()
+						);
 						//Si es página principal y tiene las relaciones insumos - productos, ingresa los movimientos de insumos
 						if (multiplicador == 1) //Si es ingreso positivo
 							servicioGoogle.InsertarMovimientosRelaciones(_servicio, cantidad, _productoString);
