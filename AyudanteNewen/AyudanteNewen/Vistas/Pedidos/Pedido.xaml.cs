@@ -7,7 +7,6 @@ using AyudanteNewen.Servicios;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AyudanteNewen.Vistas
 {
@@ -320,11 +319,6 @@ namespace AyudanteNewen.Vistas
 			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
 			ContenedorProducto.Children.Add(campoValor);
 
-			nombreCampo = ObtenerEtiquetaProp("Fecha entrega", anchoEtiqueta);
-			valorCampo = ObtenerCampoProp(_pedido.FechaEntrega,  anchoCampo);
-			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
-			ContenedorProducto.Children.Add(campoValor);
-
 			// Detalle
 			var anchoGrilla = (int)(App.AnchoRetratoDePantalla * 0.99);
 			var anchoColumna = anchoGrilla / 3 - 2; // - 2 por el divisor (2px)
@@ -334,16 +328,6 @@ namespace AyudanteNewen.Vistas
 
 			nombreCampo = ObtenerEtiquetaProp("Usuario", anchoEtiqueta);
 			valorCampo = ObtenerCampoProp(_pedido.Usuario, anchoCampo);
-			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
-			ContenedorProducto.Children.Add(campoValor);
-
-			nombreCampo = ObtenerEtiquetaProp("Comentario", anchoEtiqueta);
-			valorCampo = ObtenerCampoProp(_pedido.Comentario, anchoCampo);
-			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
-			ContenedorProducto.Children.Add(campoValor);
-
-			nombreCampo = ObtenerEtiquetaProp("Lugar", anchoEtiqueta);
-			valorCampo = ObtenerCampoProp(_pedido.Lugar, anchoCampo);
 			campoValor = ObtenerControlProp(nombreCampo, valorCampo);
 			ContenedorProducto.Children.Add(campoValor);
 

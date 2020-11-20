@@ -27,6 +27,7 @@ namespace AyudanteNewen.iOS
 
             ZXing.Net.Mobile.Forms.iOS.Platform.Init();
             global::Xamarin.Forms.Forms.Init();
+            OxyPlot.Xamarin.Forms.Platform.iOS.PlotViewRenderer.Init();
 
             //OBTENER ancho de pantalla  App.AlmacenarAnchoPantalla
 

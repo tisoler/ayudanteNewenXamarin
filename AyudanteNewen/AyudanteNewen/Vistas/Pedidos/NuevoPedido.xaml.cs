@@ -149,7 +149,7 @@ namespace AyudanteNewen.Vistas
 
 			var comboProductos = new Picker
 			{
-				HorizontalOptions = LayoutOptions.CenterAndExpand,
+				HorizontalOptions = LayoutOptions.StartAndExpand,
 				VerticalOptions = LayoutOptions.Center,
 				StyleId = "comboProducto",
 				WidthRequest = anchoCampo - 55
@@ -223,7 +223,7 @@ namespace AyudanteNewen.Vistas
 
 			var comboInventarios = new Picker
 			{
-				HorizontalOptions = LayoutOptions.CenterAndExpand,
+				HorizontalOptions = LayoutOptions.StartAndExpand,
 				VerticalOptions = LayoutOptions.Center,
 				StyleId = "comboInventario",
 				WidthRequest = anchoCampo - 55
@@ -249,7 +249,7 @@ namespace AyudanteNewen.Vistas
 				HorizontalOptions = LayoutOptions.Center,
 				VerticalOptions = LayoutOptions.Center,
 				FontSize = 13,
-				HeightRequest = altoCampos,
+				HeightRequest = 50,
 				BackgroundColor = Color.FromHex("#FD8A18")
 			};
 			botonGuardarProducto.Clicked += AgregarProducto;
@@ -261,18 +261,18 @@ namespace AyudanteNewen.Vistas
 				VerticalOptions = LayoutOptions.Start,
 				HorizontalOptions = LayoutOptions.Fill,
 				Orientation = StackOrientation.Vertical,
-				HeightRequest = altoCampos * 4,
+				HeightRequest = altoCampos * 4.5,
 				Children = { vistaProducto, vistaCantidad, vistaInventarios, botonGuardarProducto }
 			};
 		}
 
-		private Label ObtenerEtiquetaTitulo(string texto, int ancho)
+		private Label ObtenerEtiquetaTitulo(string texto, double ancho)
 		{
 			return new Label
 			{
 				Text = texto,
 				FontSize = 13,
-				HorizontalOptions = LayoutOptions.CenterAndExpand,
+				HorizontalOptions = LayoutOptions.Start,
 				FontAttributes = FontAttributes.Bold,
 				TextColor = Color.Black,
 				VerticalTextAlignment = TextAlignment.Center,
@@ -282,14 +282,14 @@ namespace AyudanteNewen.Vistas
 			};
 		}
 
-		private Label ObtenerEtiquetaDato(string campo, int ancho)
+		private Label ObtenerEtiquetaDato(string campo, double ancho)
 		{
 			var etiquetaDato = new Label
 			{
 				FontSize = 14,
 				TextColor = Color.FromHex("#1D1D1B"),
 				VerticalOptions = LayoutOptions.CenterAndExpand,
-				HorizontalOptions = LayoutOptions.CenterAndExpand,
+				HorizontalOptions = LayoutOptions.Start,
 				WidthRequest = ancho,
 				Margin = 3,
 				HorizontalTextAlignment = TextAlignment.Center
@@ -319,8 +319,8 @@ namespace AyudanteNewen.Vistas
 				Padding = 3,
 				Children =
 					{
-						ObtenerEtiquetaTitulo("Producto", anchoColumna),
-						ObtenerEtiquetaTitulo("Cantidad", anchoColumna),
+						ObtenerEtiquetaTitulo("Producto", anchoColumna * 1.25),
+						ObtenerEtiquetaTitulo("Cantidad", anchoColumna * 0.75),
 						ObtenerEtiquetaTitulo("Precio", anchoColumna)
 					}
 			};
@@ -328,9 +328,10 @@ namespace AyudanteNewen.Vistas
 
 		private ListView ObtenerDetalleGrilla(int anchoGrilla, int altoGrilla, int anchoColumna)
 		{
-			var altoTeja = 30;
+			var altoTeja = 40;
 			var vista = new ListView
 			{
+				
 				RowHeight = altoTeja,
 				VerticalOptions = LayoutOptions.Start,
 				HorizontalOptions = LayoutOptions.Center,
@@ -339,16 +340,40 @@ namespace AyudanteNewen.Vistas
 				HeightRequest = altoGrilla,
 				ItemTemplate = new DataTemplate(() =>
 				{
+					var etiquetaIconoEliminar = new Label
+					{
+						FontFamily = "FontAwesome5Solid.otf#Regular",
+						HorizontalTextAlignment = TextAlignment.Center,
+						FontSize = 22,
+						TextColor = Color.FromHex("#ffffff"),
+						VerticalTextAlignment = TextAlignment.Center,
+						VerticalOptions = LayoutOptions.CenterAndExpand,
+						HorizontalOptions = LayoutOptions.CenterAndExpand,
+						Text = "\uf2ed"
+					};
+
+					var contenedorEliminar = new StackLayout
+					{
+						WidthRequest = 45,
+						VerticalOptions = LayoutOptions.FillAndExpand,
+						Orientation = StackOrientation.Vertical,
+						Children = { etiquetaIconoEliminar },
+						BackgroundColor = Color.FromHex("#FD8A18")
+					};
+					contenedorEliminar.SetBinding(ClassIdProperty, "IdProducto");
+					contenedorEliminar.GestureRecognizers.Add(new TapGestureRecognizer(EliminarLineaDetalle));
+
 					var tecla = new StackLayout
 					{
 						Padding = 3,
 						Orientation = StackOrientation.Horizontal,
 						Children = {
-							ObtenerEtiquetaDato("NombreProducto", anchoColumna),
+							ObtenerEtiquetaDato("NombreProducto", anchoColumna * 1.25),
 							ObtenerSeparado(altoTeja),
-							ObtenerEtiquetaDato("Cantidad", anchoColumna),
+							ObtenerEtiquetaDato("Cantidad", anchoColumna * 0.75),
 							ObtenerSeparado(altoTeja),
-							ObtenerEtiquetaDato("Precio", anchoColumna)
+							ObtenerEtiquetaDato("Precio", anchoColumna),
+							contenedorEliminar
 						}
 					};
 					tecla.SetBinding(BackgroundColorProperty, "ColorFondo");
@@ -385,11 +410,48 @@ namespace AyudanteNewen.Vistas
 			};
 		}
 
+		private StackLayout ObtenerBotonGuardar()
+		{
+			// Botón eliminar
+			var etiquetaIconoGuardar = new Label
+			{
+				FontFamily = "FontAwesome5Solid.otf#Regular",
+				HorizontalTextAlignment = TextAlignment.Center,
+				FontSize = 22,
+				TextColor = Color.FromHex("#ffffff"),
+				VerticalTextAlignment = TextAlignment.Center,
+				VerticalOptions = LayoutOptions.EndAndExpand,
+				Text = "\uf0c7"
+			};
+
+			var etiquetaGuardar = new Label
+			{
+				HorizontalTextAlignment = TextAlignment.Center,
+				FontSize = 14,
+				TextColor = Color.FromHex("#ffffff"),
+				VerticalTextAlignment = TextAlignment.Center,
+				VerticalOptions = LayoutOptions.StartAndExpand,
+				Text = "Guardar"
+			};
+
+			var contenedorBotonGuardar = new StackLayout
+			{
+				HorizontalOptions = LayoutOptions.FillAndExpand,
+				HeightRequest = 65,
+				Orientation = StackOrientation.Vertical,
+				Children = { etiquetaIconoGuardar, etiquetaGuardar },
+				BackgroundColor = Color.FromHex("#32BBF9"),
+				GestureRecognizers = { new TapGestureRecognizer(EventoGuardarPedido) }
+			};
+			// contenedorBotonGuardar.GestureRecognizers.Add(new TapGestureRecognizer(EventoGuardarPedido));
+			return contenedorBotonGuardar;
+		}
+
 		private void ConstruirVista()
 		{
 			var anchoEtiqueta = App.AnchoRetratoDePantalla / 3 - 10;
 			var anchoCampo = App.AnchoRetratoDePantalla / 3 * 2 - 30;
-			var altoCampos = 50;
+			var altoCampos = 45;
 
 			//  Combo Cliente
 			var vistaCliente = ObtenerControlCliente(anchoEtiqueta, anchoCampo, altoCampos);
@@ -397,26 +459,30 @@ namespace AyudanteNewen.Vistas
 			var vistaNuevoProducto = ObtenerControlProducto(anchoEtiqueta, anchoCampo, altoCampos);
 			// Encabezado grilla
 			var anchoGrilla = (int)(App.AnchoRetratoDePantalla * 0.99);
-			var altoGrilla = (int)(App.AnchoApaisadoDePantalla * 0.25); // AnchoApaisadoDePantalla es el alto en retrato
-			var anchoColumna = anchoGrilla / 3 - 2; // - 2 por el divisor (2px)
+			var altoGrilla = (int)(App.AnchoApaisadoDePantalla * 0.24); // AnchoApaisadoDePantalla es el alto en retrato
+			var anchoColumna = (anchoGrilla - 45) / 3 - 2; // -2 por el divisor (2px), -45 por el tacho (45px) 
 			var vistaEncabezadoGrilla = ObtenerEncabezadoGrilla(anchoColumna);
 			// Detalle grilla
 			var vistaGrillaProducto = ObtenerDetalleGrilla(anchoGrilla, altoGrilla, anchoColumna);
 			// Total
 			var vistaTotal = ObtenerControlTotal(anchoEtiqueta, altoCampos);
+			// Botón guardar
+			var botonGuardar = ObtenerBotonGuardar();
 
 			Device.BeginInvokeOnMainThread(() =>
 			{
-				ContenedorPedido.Children.Clear();
-				ContenedorPedido.Children.Add(vistaCliente);
-				ContenedorPedido.Children.Add(vistaNuevoProducto);
-				ContenedorPedido.Children.Add(vistaEncabezadoGrilla);
-				ContenedorPedido.Children.Add(vistaGrillaProducto);
-				ContenedorPedido.Children.Add(vistaTotal);
+				ContenedorClienteProducto.Children.Clear();
+				ContenedorClienteProducto.Children.Add(vistaCliente);
+				ContenedorClienteProducto.Children.Add(vistaNuevoProducto);
+				ContenedorGrillaTotal.Children.Clear();
+				ContenedorGrillaTotal.Children.Add(vistaEncabezadoGrilla);
+				ContenedorGrillaTotal.Children.Add(vistaGrillaProducto);
+				ContenedorGrillaTotal.Children.Add(vistaTotal);
+				ContenedorGrillaTotal.Children.Add(botonGuardar);
 			});
 		}
 
-		private View BuscarControlEnHijos(StackLayout controlPadre, string id)
+        private View BuscarControlEnHijos(StackLayout controlPadre, string id)
 		{
 			foreach (var control in controlPadre.Children)
 			{
@@ -428,38 +494,6 @@ namespace AyudanteNewen.Vistas
 				}
 			}
 			return null;
-		}
-
-		private void AgregarProducto(object sender, EventArgs e)
-		{
-			var comboProducto = (Picker)BuscarControlEnHijos(ContenedorPedido, "comboProducto");
-			var campoCantidad = (Entry)BuscarControlEnHijos(ContenedorPedido, "campoCantidad");
-			var comboInventario = (Picker)BuscarControlEnHijos(ContenedorPedido, "comboInventario");
-
-			if (comboProducto.SelectedIndex < 0 || string.IsNullOrEmpty(campoCantidad.Text) || comboInventario.SelectedIndex < 0)
-			{
-				DisplayAlert("Produto", "Debe ingresar un producto y su cantidad.", "Listo");
-				return;
-			}
-			var producto = _productos[comboProducto.SelectedIndex];
-			var cantidad = campoCantidad.Text;
-			var valorComboInvetarioElegido = comboInventario.Items[comboInventario.SelectedIndex];
-			var lugarInventarioElegido = _valoreComboInventarios[valorComboInvetarioElegido];
-			_listaProducto.Add(new DetallePedido() {
-				IdProducto = producto[0],
-				NombreProducto = producto[1],
-				Cantidad = cantidad,
-				Precio = (Convert.ToDouble(producto[2]) * Convert.ToDouble(cantidad)).ToString(),
-				ColumnaStockElegido = lugarInventarioElegido
-			});
-
-			var total = 0.0;
-			foreach (DetallePedido linea in _listaProducto)
-			{
-				total += Convert.ToDouble(linea.Precio);
-			}
-			var etiquetaTotal = (Label)BuscarControlEnHijos(ContenedorPedido, "total");
-			etiquetaTotal.Text = "Total: " + total;
 		}
 
 		private async void GuardarPedido()
@@ -480,17 +514,6 @@ namespace AyudanteNewen.Vistas
 
 			await Navigation.PopAsync();
 			await DisplayAlert("Pedido", _mensaje, "Listo");
-		}
-
-		private void EventoGuardarPedido(object sender, EventArgs e)
-		{
-			BotonGuardar.BackgroundColor = Color.FromHex("#32CEF9");
-			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
-			{
-				GuardarPedido();
-				BotonGuardar.BackgroundColor = Color.FromHex("#32BBF9");
-				return false;
-			});
 		}
 
 		private async Task TareaGuardarPedido(Picker comboCliente)
@@ -560,5 +583,95 @@ namespace AyudanteNewen.Vistas
 			}
 			_mensaje = grabo ? "El pedido ha sido guardado correctamente." : "No se ha registrado el pedido.";
 		}
+
+		#region Eventos
+
+		private void AgregarProducto(object sender, EventArgs e)
+		{
+			var comboProducto = (Picker)BuscarControlEnHijos(ContenedorPedido, "comboProducto");
+			var campoCantidad = (Entry)BuscarControlEnHijos(ContenedorPedido, "campoCantidad");
+			var comboInventario = (Picker)BuscarControlEnHijos(ContenedorPedido, "comboInventario");
+
+			if (comboProducto.SelectedIndex < 0 || string.IsNullOrEmpty(campoCantidad.Text) || comboInventario.SelectedIndex < 0)
+			{
+				DisplayAlert("Produto", "Debe ingresar producto, cantidad y lugar de stock.", "Listo");
+				return;
+			}
+			var producto = _productos[comboProducto.SelectedIndex];
+			var cantidad = campoCantidad.Text;
+			var valorComboInvetarioElegido = comboInventario.Items[comboInventario.SelectedIndex];
+			var lugarInventarioElegido = _valoreComboInventarios[valorComboInvetarioElegido];
+			_listaProducto.Add(new DetallePedido()
+			{
+				IdProducto = producto[0],
+				NombreProducto = producto[1],
+				Cantidad = cantidad,
+				Precio = (Convert.ToDouble(producto[2]) * Convert.ToDouble(cantidad)).ToString(),
+				ColumnaStockElegido = lugarInventarioElegido
+			});
+
+			var total = 0.0;
+			foreach (DetallePedido linea in _listaProducto)
+			{
+				total += Convert.ToDouble(linea.Precio);
+			}
+			var etiquetaTotal = (Label)BuscarControlEnHijos(ContenedorPedido, "total");
+			etiquetaTotal.Text = "Total: " + total;
+		}
+
+		private void EliminarLineaDetalle(View boton, object e)
+		{
+			var tacho = (StackLayout)boton;
+			var idProducto = tacho.ClassId;
+
+			tacho.BackgroundColor = Color.FromHex("#FB9F0B");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
+			{
+				tacho.BackgroundColor = Color.FromHex("#FD8A18");
+				return false;
+			});
+
+			for (int i = 0; i < _listaProducto.Count; i++)
+			{
+				if (_listaProducto[i].IdProducto == idProducto)
+				{
+					_listaProducto.Remove(_listaProducto[i]);
+					break;
+				}
+			}
+		}
+
+		[Android.Runtime.Preserve]
+		private void EventoGuardarPedido(View boton, object e)
+		{
+			var BotonGuardar = (StackLayout)boton;
+			BotonGuardar.BackgroundColor = Color.FromHex("#32CEF9");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
+			{
+				ContenedorClienteProducto.IsVisible = false;
+				ContenedorGrillaTotal.IsVisible = false;
+
+				GuardarPedido();
+				BotonGuardar.BackgroundColor = Color.FromHex("#32BBF9");
+				return false;
+			});
+		}
+
+		protected override void OnSizeAllocated(double width, double height)
+		{
+			base.OnSizeAllocated(width, height);
+			if (width > height)
+			{
+				ContenedorPedido.Orientation = StackOrientation.Horizontal;
+				Titulo.IsVisible = false;
+			}
+			else
+			{
+				ContenedorPedido.Orientation = StackOrientation.Vertical;
+				Titulo.IsVisible = true;
+			}
+		}
+
+		#endregion
 	}
 }

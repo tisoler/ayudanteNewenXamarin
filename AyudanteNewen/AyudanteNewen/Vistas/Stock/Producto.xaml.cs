@@ -111,7 +111,8 @@ namespace AyudanteNewen.Vistas
 
         private void ConfigurarBotones()
 		{
-			var anchoBoton = App.AnchoRetratoDePantalla / 2;
+			var anchoBoton = App.AnchoRetratoDePantalla / 3;
+			BotonEstadisticas.WidthRequest = anchoBoton;
 			BotonMovimientos.WidthRequest = anchoBoton;
 			BotonGuardar.WidthRequest = anchoBoton;
 		}
@@ -461,13 +462,25 @@ namespace AyudanteNewen.Vistas
 		}
 
 		[Android.Runtime.Preserve]
+		private void AccederEstadisticas(object sender, EventArgs e)
+		{
+			BotonEstadisticas.BackgroundColor = Color.FromHex("#FB9F0B");
+			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
+			{
+				Navigation.PushAsync(new EstadisticasProducto(_productoString, _servicio), true);
+				BotonEstadisticas.BackgroundColor = Color.FromHex("#FD8A18");
+				return false;
+			});
+		}
+
+		[Android.Runtime.Preserve]
 		private void AccederMovimientos(object sender, EventArgs e)
 		{
-			BotonMovimientos.BackgroundColor = Color.FromHex("#FB9F0B");
+			BotonMovimientos.BackgroundColor = Color.FromHex("#32CEF9");
 			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
 			{
 				Navigation.PushAsync(new ProductoMovimientos(_productoString, _servicio), true);
-				BotonMovimientos.BackgroundColor = Color.FromHex("#FD8A18");
+				BotonMovimientos.BackgroundColor = Color.FromHex("#32BBF9");
 				return false;
 			});
 		}
@@ -475,11 +488,11 @@ namespace AyudanteNewen.Vistas
 		[Android.Runtime.Preserve]
 		private void EventoGuardarCambios(object sender, EventArgs e)
 		{
-			BotonGuardar.BackgroundColor = Color.FromHex("#32CEF9");
+			BotonGuardar.BackgroundColor = Color.FromHex("#FB9F0B");
 			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
 			{
 				GuardarCambios();
-				BotonGuardar.BackgroundColor = Color.FromHex("#32BBF9");
+				BotonGuardar.BackgroundColor = Color.FromHex("#FD8A18");
 				return false;
 			});
 		}

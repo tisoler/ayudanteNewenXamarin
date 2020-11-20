@@ -16,8 +16,8 @@ namespace AyudanteNewen.Droid
 			base.OnCreate(bundle);
 
 			ZXing.Net.Mobile.Forms.Android.Platform.Init();
-
 			Xamarin.Forms.Forms.Init(this, bundle);
+			OxyPlot.Xamarin.Forms.Platform.Android.PlotViewRenderer.Init();
 
 			App.AlmacenarAnchoPantalla(Resources.DisplayMetrics.Density, Resources.DisplayMetrics.WidthPixels, Resources.DisplayMetrics.HeightPixels);
 

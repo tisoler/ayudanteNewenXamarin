@@ -6,10 +6,13 @@ using Xamarin.Forms;
 using AyudanteNewen.Clases;
 using AyudanteNewen.Servicios;
 using System.Threading.Tasks;
+using OxyPlot.Xamarin.Forms;
+using OxyPlot;
+using OxyPlot.Series;
 
 namespace AyudanteNewen.Vistas
 {
-	public partial class ProductoMovimientos
+	public partial class EstadisticasProducto
 	{
 		private readonly string[] _productoString;
 		private readonly SpreadsheetsService _servicio;
@@ -18,7 +21,7 @@ namespace AyudanteNewen.Vistas
 		private string[] _nombresColumnas;
 		private ActivityIndicator _indicadorActividad;
 
-		public ProductoMovimientos(string[] producto, SpreadsheetsService servicio)
+		public EstadisticasProducto(string[] producto, SpreadsheetsService servicio)
 		{
 			InitializeComponent();
 			_servicio = servicio;
@@ -26,15 +29,7 @@ namespace AyudanteNewen.Vistas
 			_productoString = producto;
 
 			InicializarValoresGenerales();
-			ObtenerDatosMovimientosDesdeHCG();
-		}
-
-		public ProductoMovimientos(string[] productoBD)
-		{
-			InitializeComponent();
-			_productoString = productoBD;
-
-			InicializarValoresGenerales();
+		//	ObtenerDatosMovimientosDesdeHCG();
 		}
 
 		private void InicializarValoresGenerales()
@@ -52,6 +47,21 @@ namespace AyudanteNewen.Vistas
 			};
 			_indicadorActividad.SetBinding(IsVisibleProperty, "IsBusy");
 			_indicadorActividad.SetBinding(ActivityIndicator.IsRunningProperty, "IsBusy");
+
+			var serie = new List<Series>();
+
+
+			var e = new PlotView
+			{
+				Model = new PlotModel {
+					Title = "Hello, Forms!",
+					
+				},
+				VerticalOptions = LayoutOptions.FillAndExpand,
+				HorizontalOptions = LayoutOptions.FillAndExpand,
+			};
+			ContenedorMovimientos.Children.Clear();
+			ContenedorMovimientos.Children.Add(e);
 		}
 
 		private async void ObtenerDatosMovimientosDesdeHCG()
@@ -263,25 +273,5 @@ namespace AyudanteNewen.Vistas
 				return false;
 			});
 		}
-	}
-
-	//Clase Movimiento: utilizada para armar la lista scrolleable de movimientos
-	[Android.Runtime.Preserve]
-	public class ClaseMovimiento
-	{
-		[Android.Runtime.Preserve]
-		public ClaseMovimiento(int idMovimiento, IList<string> datos, bool esTeclaPar)
-		{
-			IdMovimiento = idMovimiento;
-			Datos = string.Join(" | ", datos);
-			ColorFondo = esTeclaPar ? Color.FromHex("#EDEDED") : Color.FromHex("#E2E2E1");
-		}
-
-		[Android.Runtime.Preserve]
-		public int IdMovimiento { get; }
-		[Android.Runtime.Preserve]
-		public string Datos { get; }
-		[Android.Runtime.Preserve]
-		public Color ColorFondo { get; }
 	}
 }

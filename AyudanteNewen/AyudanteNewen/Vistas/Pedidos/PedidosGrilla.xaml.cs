@@ -378,6 +378,11 @@ namespace AyudanteNewen.Vistas
 			BotonNuevoPedido.BackgroundColor = Color.FromHex("#FB9F0B");
 			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
 			{
+				if(_listaPedidos == null)
+                {
+					DisplayAlert("Pedidos", "Debe aguardar la carga de pedidos para crear uno.", "Listo");
+					return false;
+                }
 				Navigation.PushAsync(new NuevoPedido(_servicio, _listaPedidos), true);
 				BotonNuevoPedido.BackgroundColor = Color.FromHex("#FD8A18");
 				return false;

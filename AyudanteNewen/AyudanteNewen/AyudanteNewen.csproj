@@ -84,6 +84,9 @@
     <Compile Include="Vistas\Pedidos\Pedido.xaml.cs">
       <DependentUpon>Pedido.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Vistas\Stock\EstadisticasProducto.xaml.cs">
+      <DependentUpon>EstadisticasProducto.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Vistas\Stock\ProductoMovimientos.xaml.cs">
       <DependentUpon>ProductoMovimientos.xaml</DependentUpon>
     </Compile>
@@ -118,6 +121,12 @@
     </Reference>
     <Reference Include="Mono.Android">
       <HintPath>..\..\DLLs\Mono.Android.dll</HintPath>
+    </Reference>
+    <Reference Include="OxyPlot, Version=2.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\OxyPlot.Core.2.0.0\lib\netstandard1.0\OxyPlot.dll</HintPath>
+    </Reference>
+    <Reference Include="OxyPlot.Xamarin.Forms, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\OxyPlot.Xamarin.Forms.1.0.0\lib\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+Xamarin.iOS10\OxyPlot.Xamarin.Forms.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http">
       <HintPath>..\..\DLLs\System.Net.Http.dll</HintPath>
@@ -252,6 +261,12 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Vistas\Pedidos\NuevoPedido.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Vistas\Stock\EstadisticasProducto.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
       <SubType>Designer</SubType>
     </EmbeddedResource>
