@@ -1,7 +1,7 @@
 # ProductorCFInventario
 Aplicación móvil para inventario
 
-- Configuración del proyecto Dorid -
+- Configuración del proyecto Droid -
 
 Debug:
 Habilitar check de debug (instrumentación deldesarrollador) - Depurador: .NET (Xamarin)
