@@ -92,6 +92,9 @@ namespace AyudanteNewen.Servicios
 		public void EnviarMovimiento(SpreadsheetsService servicio, uint columnaCeldaMovimiento, double cantidad, double precio, string puntoVenta, string comentario,
 			string[] producto, string[] nombresColumnas, string[] listaColumnasInventario, string url)
 		{
+			// Purga caché de listado de movimientos
+			CuentaUsuario.ListaMovimientos = null;
+
 			var movimiento = AgregarHistorico(columnaCeldaMovimiento, cantidad, precio, puntoVenta, producto, nombresColumnas, listaColumnasInventario, comentario);
 			EnviarFilas(movimiento, servicio, url);
 		}
@@ -115,6 +118,9 @@ namespace AyudanteNewen.Servicios
 
 		internal void InsertarMovimientosRelaciones(SpreadsheetsService servicio, double cantidad, string[] producto)
 		{
+			// Purga caché de listado de movimientos
+			CuentaUsuario.ListaMovimientos =  null;
+
 			// Valida que sea la hoja de productos a la que se le asocia la relaciones
 			var paginaRelaciones = CuentaUsuario.RecuperarValorDeCuentaLocal(CuentaUsuario.ObtenerLinkHojaConsulta() + "|relacionesInsumoProducto");
 			if (paginaRelaciones == null) return;

@@ -43,6 +43,7 @@
     <Compile Include="Clases\CuentaUsuario.cs" />
     <Compile Include="Clases\DetallePedido.cs" />
     <Compile Include="Clases\LugaresCompraVenta.cs" />
+    <Compile Include="Clases\MovimientoProducto.cs" />
     <Compile Include="Clases\Pedido.cs" />
     <Compile Include="Clases\RelacionInsumoProducto.cs" />
     <Compile Include="Servicios\ServiciosGoogle.cs" />
@@ -122,8 +123,8 @@
     <Reference Include="Mono.Android">
       <HintPath>..\..\DLLs\Mono.Android.dll</HintPath>
     </Reference>
-    <Reference Include="OxyPlot, Version=2.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\OxyPlot.Core.2.0.0\lib\netstandard1.0\OxyPlot.dll</HintPath>
+    <Reference Include="OxyPlot, Version=1.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\OxyPlot.Core.1.0.0\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1+Xamarin.iOS10\OxyPlot.dll</HintPath>
     </Reference>
     <Reference Include="OxyPlot.Xamarin.Forms, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\OxyPlot.Xamarin.Forms.1.0.0\lib\portable-win+net45+wp80+win81+wpa81+MonoAndroid10+Xamarin.iOS10\OxyPlot.Xamarin.Forms.dll</HintPath>

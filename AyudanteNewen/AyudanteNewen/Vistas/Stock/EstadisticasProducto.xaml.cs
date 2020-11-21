@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using OxyPlot.Xamarin.Forms;
 using OxyPlot;
 using OxyPlot.Series;
+using OxyPlot.Axes;
+using System.Globalization;
 
 namespace AyudanteNewen.Vistas
 {
@@ -16,9 +18,7 @@ namespace AyudanteNewen.Vistas
 	{
 		private readonly string[] _productoString;
 		private readonly SpreadsheetsService _servicio;
-		private CellFeed _celdas;
 		private readonly ServiciosGoogle _servicioGoogle;
-		private string[] _nombresColumnas;
 		private ActivityIndicator _indicadorActividad;
 
 		public EstadisticasProducto(string[] producto, SpreadsheetsService servicio)
@@ -29,7 +29,7 @@ namespace AyudanteNewen.Vistas
 			_productoString = producto;
 
 			InicializarValoresGenerales();
-		//	ObtenerDatosMovimientosDesdeHCG();
+			ObtenerDatosConstruirGrafica();
 		}
 
 		private void InicializarValoresGenerales()
@@ -47,25 +47,94 @@ namespace AyudanteNewen.Vistas
 			};
 			_indicadorActividad.SetBinding(IsVisibleProperty, "IsBusy");
 			_indicadorActividad.SetBinding(ActivityIndicator.IsRunningProperty, "IsBusy");
-
-			var serie = new List<Series>();
-
-
-			var e = new PlotView
-			{
-				Model = new PlotModel {
-					Title = "Hello, Forms!",
-					
-				},
-				VerticalOptions = LayoutOptions.FillAndExpand,
-				HorizontalOptions = LayoutOptions.FillAndExpand,
-			};
-			ContenedorMovimientos.Children.Clear();
-			ContenedorMovimientos.Children.Add(e);
 		}
 
-		private async void ObtenerDatosMovimientosDesdeHCG()
+		private void AsignarCampoMovimiento(MovimientoProducto movimiento, string nombreColumna, string valorCelda)
 		{
+			switch(nombreColumna)
+            {
+				case "fecha":
+					movimiento.Fecha = valorCelda;
+					break;
+				case "código":
+					movimiento.IdProducto = valorCelda;
+					break;
+				case "producto":
+					movimiento.Producto = valorCelda;
+					break;
+				case "precio":
+					movimiento.Precio = valorCelda != "-" ? Convert.ToDouble(valorCelda) : 0;
+					break;
+				case "stock bajo":
+					movimiento.StockBajo = valorCelda != "-" ? Convert.ToDouble(valorCelda) : 0;
+					break;
+				case "stock":
+					if(valorCelda != "-")
+						movimiento.Stock = Convert.ToDouble(valorCelda);
+					break;
+				case "cantidad":
+					movimiento.Cantidad = valorCelda != "-" ? Convert.ToDouble(valorCelda) : 0;
+					break;
+				case "precio total":
+					movimiento.PrecioTotal = valorCelda != "-" ? Convert.ToDouble(valorCelda) : 0;
+					break;
+				case "lugar":
+					movimiento.Lugar = valorCelda;
+					break;
+				case "usuario":
+					movimiento.Usuario = valorCelda;
+					break;
+				case "eliminado":
+					movimiento.Eliminado = valorCelda == "sí" ? true : false;
+					break;
+			}
+		}
+
+		private List<MovimientoProducto> ObtenerDatosDesdeHG()
+        {
+			var linkHistoricosCeldas = CuentaUsuario.ObtenerLinkHojaHistoricosCeldas(CuentaUsuario.ObtenerLinkHojaConsulta());
+			CellFeed celdas = _servicioGoogle.ObtenerCeldasDeUnaHoja(linkHistoricosCeldas, _servicio);
+
+			var listaMovimientos = new List<MovimientoProducto>();
+			var movimiento = new MovimientoProducto();
+			var diccionarioCampos = new Dictionary<uint, string>();
+
+			foreach (CellEntry celda in celdas.Entries)
+			{
+				var valorCelda = celda.Value.Trim().ToLower();
+				if (celda.Row != 1)
+				{
+					if (celda.Column == 1)
+						movimiento = new MovimientoProducto();
+
+					var nombreColumna = diccionarioCampos[celda.Column];
+					if (nombreColumna != null)
+					{
+						AsignarCampoMovimiento(movimiento, nombreColumna, valorCelda);
+					}
+
+					if (celda.Column == celdas.ColCount.Count)
+						listaMovimientos.Add(movimiento);
+				}
+				else
+				{
+					if (!valorCelda.Contains("stock") || valorCelda == "stock bajo")
+					{
+						diccionarioCampos[celda.Column] = valorCelda;
+					}
+					else
+					{
+						diccionarioCampos[celda.Column] = "stock";
+					}
+				}
+			}
+
+			return listaMovimientos;
+		}
+
+		private async void ObtenerDatosConstruirGrafica()
+		{
+			PlotView grafica = null;
 			try
 			{
 				ContenedorMovimientos.Children.Add(_indicadorActividad);
@@ -74,8 +143,13 @@ namespace AyudanteNewen.Vistas
 				await Task.Run(async () => {
 					if (CuentaUsuario.ValidarTokenDeGoogle())
 					{
-						var linkHistoricosCeldas = CuentaUsuario.ObtenerLinkHojaHistoricosCeldas(CuentaUsuario.ObtenerLinkHojaConsulta());
-						_celdas = _servicioGoogle.ObtenerCeldasDeUnaHoja(linkHistoricosCeldas, _servicio);
+						// Recupera el caché desde CuentaUsuario
+						var listaMovimientos = CuentaUsuario.ListaMovimientos ?? ObtenerDatosDesdeHG();
+						// Almacena en caché
+						// Se purga cada vez que insertamos un movimiento (ServiciosGoogle: EnviarMovimiento - InsertarMovimientosRelaciones)
+						CuentaUsuario.ListaMovimientos = listaMovimientos;
+
+						grafica = ConstruirGrafica(listaMovimientos);
 					}
 					else
 					{
@@ -91,175 +165,84 @@ namespace AyudanteNewen.Vistas
 				IsBusy = false; //Remueve el Indicador de Actividad.
 			}
 
-			_nombresColumnas = new string[_celdas.ColCount.Count];
-
-			var movimientos = new List<string[]>();
-			var movimiento = new string[_celdas.ColCount.Count];
-
-			foreach (CellEntry celda in _celdas.Entries)
+			if(grafica != null)
 			{
-				if (celda.Row != 1)
-				{
-					if (celda.Column == 1)
-						movimiento = new string[_celdas.ColCount.Count];
-
-					movimiento.SetValue(celda.Value, (int)celda.Column - 1);
-
-					if (celda.Column == _celdas.ColCount.Count)
-						movimientos.Add(movimiento);
-				}
-				else
-				{
-					_nombresColumnas.SetValue(celda.Value, (int)celda.Column - 1);
-				}
+				ContenedorMovimientos.Children.Clear();
+				ContenedorMovimientos.Children.Add(grafica);
 			}
-
-			LlenarGrillaDeMovimientos(movimientos);
 		}
 
-		private void LlenarGrillaDeMovimientos(List<string[]> movimientos)
+        private PlotView ConstruirGrafica(List<MovimientoProducto> listaMovimientos)
 		{
-			var esTeclaPar = false;
-			var listaMovimientos = new List<ClaseMovimiento>();
+			var listaMovimientosProducto = new List<MovimientoProducto>();
 
-			//Usamos for para ordenar los movimientos por fecha en forma descendente
-			for (var indice = movimientos.Count - 1; indice >= 0; indice--)
+			// Usamos for para ordenar los movimientos por fecha en forma descendente
+			foreach (var movimiento in listaMovimientos)
 			{
-				var datosMovimiento = movimientos[indice];
-				//Sólo incluimos los movimientos (no eliminados) del producto seleccionado
-				if (datosMovimiento[1] != _productoString[0] || datosMovimiento[datosMovimiento.Length - 2] == "Sí") continue;
+				// Sólo incluimos los movimientos (no eliminados) y con cantidad negativa (egreso - venta) del producto seleccionado
+				if (movimiento.IdProducto != _productoString[0] || movimiento.Eliminado || movimiento.Cantidad >= 0) continue;
 
-				var datosParaVer = new List<string>();
-				var i = -1;
-				foreach (var dato in datosMovimiento)
-				{
-					i += 1;
-					//No incluimos Código y Nombre del producto, tampoco Eliminado y Eliminado Por porque son los movimientos (no eliminados) del producto seleccionado.
-					if (i == 1 || i == 2 || i == datosMovimiento.Length - 2 || i == datosMovimiento.Length - 1) continue;
-
-					datosParaVer.Add(_nombresColumnas[i] + " : " + dato);
-				}
-
-				var movimiento = new ClaseMovimiento(indice + 2, datosParaVer, esTeclaPar);
-				listaMovimientos.Add(movimiento);
-				esTeclaPar = !esTeclaPar;
+				listaMovimientosProducto.Add(movimiento);
 			}
+			
+			var model = new PlotModel();
+			var ejeX = new DateTimeAxis() {
+				Position = AxisPosition.Bottom
+			};
+			model.Axes.Add(ejeX);
 
-			var anchoColumnaEliminar = App.AnchoRetratoDePantalla / 6;
-			var anchoColumnaDatos = anchoColumnaEliminar * 5;
-			var vista = new ListView
+			var ventas = new LineSeries()
 			{
-				RowHeight = 100,
-				VerticalOptions = LayoutOptions.StartAndExpand,
-				HorizontalOptions = LayoutOptions.Fill,
-				ItemsSource = listaMovimientos,
-				ItemTemplate = new DataTemplate(() =>
-				{
-					// Datos
-					var datos = new Label
-					{
-						FontSize = 15,
-						TextColor = Color.FromHex("#1D1D1B"),
-						VerticalOptions = LayoutOptions.CenterAndExpand,
-						WidthRequest = anchoColumnaDatos
-					};
-					datos.SetBinding(Label.TextProperty, "Datos");
-
-					// Separador
-					var separador = new BoxView
-					{
-						WidthRequest = 2,
-						BackgroundColor = Color.FromHex("#FFFFFF"),
-						HeightRequest = 55
-					};
-
-					// Botón eliminar
-					var etiquetaIconoEliminar = new Label
-					{
-						FontFamily = "FontAwesome5Solid.otf#Regular",
-						HorizontalTextAlignment = TextAlignment.Center,
-						FontSize = 22,
-						TextColor = Color.FromHex("#ffffff"),
-						VerticalTextAlignment = TextAlignment.Center,
-						VerticalOptions = LayoutOptions.EndAndExpand,
-						Text = "\uf2ed"
-					};
-
-					var etiquetaEliminar = new Label
-					{
-						HorizontalTextAlignment = TextAlignment.Center,
-						FontSize = 14,
-						TextColor = Color.FromHex("#ffffff"),
-						VerticalTextAlignment = TextAlignment.Center,
-						VerticalOptions = LayoutOptions.StartAndExpand,
-						Text = "Eliminar"
-					};
-
-					var contenedorEliminar = new StackLayout
-					{
-						WidthRequest = anchoColumnaEliminar,
-						Orientation = StackOrientation.Vertical,
-						Children = { etiquetaIconoEliminar, etiquetaEliminar },
-						BackgroundColor = Color.FromHex("#FD8A18")
-					};
-					contenedorEliminar.SetBinding(ClassIdProperty, "IdMovimiento");
-					contenedorEliminar.GestureRecognizers.Add(new TapGestureRecognizer(EliminarMovimiento));
-
-					// Teja
-					var tecla = new StackLayout
-					{
-						Padding = 2,
-						Spacing = 2,
-						Orientation = StackOrientation.Horizontal,
-						Children = { datos, separador, contenedorEliminar }
-					};
-					tecla.SetBinding(BackgroundColorProperty, "ColorFondo");
-
-					return new ViewCell { View = tecla };
-
-				})
+				Title = "Ventas",
+				Color = OxyColors.MediumSpringGreen,
+				MarkerType = MarkerType.Circle,
+				MarkerSize = 2,
+				MarkerStroke = OxyColors.MediumSpringGreen,
+				MarkerFill = OxyColors.MediumSpringGreen,
+				MarkerStrokeThickness = 2.5
 			};
 
-			ContenedorMovimientos.Children.Clear();
-			ContenedorMovimientos.Children.Add(vista);
-		}
-
-		private void RefrescarUIGrilla()
-		{
-			//Se quita la grilla para recargarla.
-			ContenedorMovimientos.Children.Clear();
-			ContenedorMovimientos.Children.Add(_indicadorActividad);
-			IsBusy = true;
-		}
-
-		private async void EliminarMovimiento(View boton, object e)
-		{
-			var tacho = (StackLayout)boton;
-			var fila = Convert.ToInt32(tacho.ClassId);
-
-			tacho.BackgroundColor = Color.FromHex("#FB9F0B");
-			Device.StartTimer(TimeSpan.FromMilliseconds(200), () =>
+			var stock = new LineSeries()
 			{
-				tacho.BackgroundColor = Color.FromHex("#FD8A18");
-				return false;
-			});
+				Title = "Stock",
+				Color = OxyColors.LightBlue,
+				MarkerType = MarkerType.Circle,
+				MarkerSize = 2,
+				MarkerStroke = OxyColors.LightBlue,
+				MarkerFill = OxyColors.LightBlue,
+				MarkerStrokeThickness = 2.5
+			};			
 
-			if(!await DisplayAlert("Movimiento", "¿Desea eliminar el movimiento seleccionado?", "Sí", "No")) return;
-
-			RefrescarUIGrilla();
-
-			foreach (CellEntry celda in _celdas.Entries)
+			var stockBajo = new LineSeries()
 			{
-				if (celda.Row != fila) continue;
+				Title = "Stock bajo",
+				Color = OxyColors.LightCoral,
+				MarkerType = MarkerType.Circle,
+				MarkerSize = 2,
+				MarkerStroke = OxyColors.LightCoral,
+				MarkerFill = OxyColors.LightCoral,
+				MarkerStrokeThickness = 2.5
+			};
 
-				if (celda.Column == _celdas.ColCount.Count - 1 || celda.Column == _celdas.ColCount.Count)
-				{
-					celda.InputValue = celda.Column == _celdas.ColCount.Count - 1 ? "Sí" : CuentaUsuario.ObtenerNombreUsuarioGoogle() ?? "-";
-					celda.Update();
-				}
+			DateTime fecha;
+			for (int i = 0; i < listaMovimientosProducto.Count; i++)
+			{
+				fecha = DateTime.ParseExact(listaMovimientosProducto[i].Fecha, "dd-MM-yyyy", CultureInfo.InvariantCulture);
+				double cantidadVenta = -1 * listaMovimientosProducto[i].Cantidad;
+				ventas.Points.Add(new DataPoint(DateTimeAxis.ToDouble(fecha), cantidadVenta));
+				stock.Points.Add(new DataPoint(DateTimeAxis.ToDouble(fecha), listaMovimientosProducto[i].Stock - cantidadVenta));
+				stockBajo.Points.Add(new DataPoint(DateTimeAxis.ToDouble(fecha), listaMovimientosProducto[i].StockBajo));
 			}
+			model.Series.Add(ventas);
+			model.Series.Add(stock);
+			model.Series.Add(stockBajo);
 
-			ObtenerDatosMovimientosDesdeHCG();
+			return new PlotView
+			{
+				Model = model,
+				VerticalOptions = LayoutOptions.FillAndExpand,
+				HorizontalOptions = LayoutOptions.FillAndExpand
+			};
 		}
 
 		[Android.Runtime.Preserve]

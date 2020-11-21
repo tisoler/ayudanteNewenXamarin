@@ -404,5 +404,6 @@ namespace AyudanteNewen.Clases
 			RemoverValorEnCuentaLocal("relacionesInsumoProducto");
 		}
 
+		public static List<MovimientoProducto> ListaMovimientos { get; set; }
 	}
 }
