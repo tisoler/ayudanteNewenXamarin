@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto" android:versionName="1.8.0" package="com.ayudante.newen" android:versionCode="18">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto" android:versionName="2.1.1" package="com.ayudante.newen" android:versionCode="21">
 	<uses-sdk android:minSdkVersion="17" android:targetSdkVersion="29" />
 	<application android:label="Ayudante Newen" android:icon="@drawable/icon"></application>
 	<uses-permission android:name="android.permission.CAMERA" />

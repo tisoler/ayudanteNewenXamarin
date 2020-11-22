@@ -21,7 +21,6 @@ namespace AyudanteNewen.Vistas
 		private Color _ultimoColorSeleccionado;
 		private ActivityIndicator _indicadorActividad;
 		private List<Clases.Pedido> _listaPedidos;
-        // private List<string[]> _pedidos;
 		private CellFeed _celdas;
 
 		// Constructor para Hoja de cálculo de Google
@@ -357,6 +356,8 @@ namespace AyudanteNewen.Vistas
 		#endregion
 
 		#region Eventos
+
+		[Android.Runtime.Preserve]
 		private void RefrescarDatos(object sender, EventArgs e)
 		{
 			BotonRefrescar.BackgroundColor = Color.FromHex("#32CEF9");
@@ -373,6 +374,7 @@ namespace AyudanteNewen.Vistas
 			});
 		}
 
+		[Android.Runtime.Preserve]
 		private void CrearPedido(object sender, EventArgs e)
 		{
 			BotonNuevoPedido.BackgroundColor = Color.FromHex("#FB9F0B");

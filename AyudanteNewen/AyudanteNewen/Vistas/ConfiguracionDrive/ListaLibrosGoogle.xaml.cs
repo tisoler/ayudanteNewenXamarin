@@ -49,6 +49,9 @@ namespace AyudanteNewen.Vistas
 
 		private async void ConfigurarIrPlanillaStock(string linkLibro)
 		{
+			ContenedorLibros.Children.Clear();
+			ContenedorLibros.Children.Add(_indicadorActividad);
+
 			await ObtenerYConfigurarHojas(linkLibro);
 			if (_mensajeError != "")
 			{

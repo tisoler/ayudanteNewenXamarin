@@ -586,6 +586,7 @@ namespace AyudanteNewen.Vistas
 
 		#region Eventos
 
+		[Android.Runtime.Preserve]
 		private void AgregarProducto(object sender, EventArgs e)
 		{
 			var comboProducto = (Picker)BuscarControlEnHijos(ContenedorPedido, "comboProducto");
@@ -619,6 +620,7 @@ namespace AyudanteNewen.Vistas
 			etiquetaTotal.Text = "Total: " + total;
 		}
 
+		[Android.Runtime.Preserve]
 		private void EliminarLineaDetalle(View boton, object e)
 		{
 			var tacho = (StackLayout)boton;
