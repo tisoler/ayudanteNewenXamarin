@@ -303,7 +303,10 @@ namespace AyudanteNewen.Vistas
 
 					if (_listaColumnasParaVer != null && _listaColumnasParaVer[i] == "1")
 					{
-						textoDato += _nombresColumnas[i] + ": " + dato + '\n';
+						// Produto no lleva etiqueta, solo el valor (índice = 1)
+						textoDato += i == 1
+							? dato + '\n'
+							: _nombresColumnas[i] + ": " + dato + '\n';
 						datosParaVer.Add(textoDato);
 					}
 					if (_listaColumnasInventario != null && _listaColumnasInventario[i] == "1")
@@ -330,7 +333,7 @@ namespace AyudanteNewen.Vistas
 		{
 			var listaProductos = ObtenerListaProductos(productos);
 
-			var anchoColumnaNombreProd = App.AnchoRetratoDePantalla * 0.55;
+			var anchoColumnaNombreProd = App.AnchoRetratoDePantalla * 0.43;
 			var anchoColumnaDatosProd = App.AnchoRetratoDePantalla - (anchoColumnaNombreProd + 2); // 2 por el ancho del divisor
 
 			var titulo = _nombresColumnas != null && _nombresColumnas.Length > 1 ? _nombresColumnas[1].ToUpper() : "PRODUCTO";
@@ -369,12 +372,12 @@ namespace AyudanteNewen.Vistas
 					}
 			};
 
-			var altoTeja = (_listaColumnasParaVer?.Where(x => x == "1").Count() ?? 0) * 17;
+			var altoTeja = (_listaColumnasParaVer?.Where(x => x == "1").Count() ?? 0) * 16;
 
 			var vista = new ListView
 			{
 				RowHeight = altoTeja,
-				VerticalOptions = LayoutOptions.StartAndExpand,
+				VerticalOptions = LayoutOptions.Start,
 				HorizontalOptions = LayoutOptions.Fill,
 				ItemsSource = listaProductos,
 				ItemTemplate = new DataTemplate(() =>

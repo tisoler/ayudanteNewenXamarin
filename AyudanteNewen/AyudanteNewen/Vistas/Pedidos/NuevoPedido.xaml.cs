@@ -319,9 +319,9 @@ namespace AyudanteNewen.Vistas
 				Padding = 3,
 				Children =
 					{
-						ObtenerEtiquetaTitulo("Producto", anchoColumna * 1.25),
-						ObtenerEtiquetaTitulo("Cantidad", anchoColumna * 0.75),
-						ObtenerEtiquetaTitulo("Precio", anchoColumna)
+						ObtenerEtiquetaTitulo("Producto", anchoColumna * 1.6),
+						ObtenerEtiquetaTitulo("Cantidad", anchoColumna * 0.7),
+						ObtenerEtiquetaTitulo("Precio", anchoColumna * 0.7)
 					}
 			};
 		}
@@ -365,14 +365,15 @@ namespace AyudanteNewen.Vistas
 
 					var tecla = new StackLayout
 					{
-						Padding = 3,
+						Padding = 0,
 						Orientation = StackOrientation.Horizontal,
+						Spacing = 0,
 						Children = {
-							ObtenerEtiquetaDato("NombreProducto", anchoColumna * 1.25),
+							ObtenerEtiquetaDato("NombreProducto", anchoColumna * 1.6),
 							ObtenerSeparado(altoTeja),
-							ObtenerEtiquetaDato("Cantidad", anchoColumna * 0.75),
+							ObtenerEtiquetaDato("Cantidad", anchoColumna * 0.7),
 							ObtenerSeparado(altoTeja),
-							ObtenerEtiquetaDato("Precio", anchoColumna),
+							ObtenerEtiquetaDato("Precio", anchoColumna * 0.7),
 							contenedorEliminar
 						}
 					};
@@ -593,6 +594,17 @@ namespace AyudanteNewen.Vistas
 			var campoCantidad = (Entry)BuscarControlEnHijos(ContenedorPedido, "campoCantidad");
 			var comboInventario = (Picker)BuscarControlEnHijos(ContenedorPedido, "comboInventario");
 
+			var nombresColumnas = CuentaUsuario.ObtenerColumnasProductos()?.Split(',');
+			var columnaPrecio = 2;
+			for(var i = 0; i < nombresColumnas.Length; i++)
+            {
+				if(nombresColumnas[i].Trim().ToLower() == "precio")
+                {
+					columnaPrecio = i;
+					break;
+                }
+            }
+
 			if (comboProducto.SelectedIndex < 0 || string.IsNullOrEmpty(campoCantidad.Text) || comboInventario.SelectedIndex < 0)
 			{
 				DisplayAlert("Produto", "Debe ingresar producto, cantidad y lugar de stock.", "Listo");
@@ -607,7 +619,7 @@ namespace AyudanteNewen.Vistas
 				IdProducto = producto[0],
 				NombreProducto = producto[1],
 				Cantidad = cantidad,
-				Precio = (Convert.ToDouble(producto[2]) * Convert.ToDouble(cantidad)).ToString(),
+				Precio = (Convert.ToDouble(producto[columnaPrecio]) * Convert.ToDouble(cantidad)).ToString(),
 				ColumnaStockElegido = lugarInventarioElegido
 			});
 
