@@ -14,9 +14,7 @@
                     <Image x:Name="SombraEncabezado" HorizontalOptions="FillAndExpand" Aspect="AspectFill"></Image>
                 </StackLayout>
             </StackLayout>
-            <StackLayout VerticalOptions="Start" HorizontalOptions="Fill" Spacing="0" Padding="0">
-                <SearchBar x:Name="Buscador" IsVisible="False" BackgroundColor="#EDEDED" HorizontalOptions="Fill" TextChanged="FiltrarProductos" SearchButtonPressed="FiltrarProductos" />
-            </StackLayout>
+            <SearchBar x:Name="Buscador" IsVisible="False" BackgroundColor="#EDEDED" HeightRequest="36" VerticalOptions="Start" HorizontalOptions="Fill" TextChanged="FiltrarProductos" SearchButtonPressed="FiltrarProductos" />
             <StackLayout x:Name="ContenedorTabla" VerticalOptions="FillAndExpand" HorizontalOptions="Fill" Spacing="0" Padding="0"></StackLayout>
             <StackLayout x:Name="ContenedorBotones" HeightRequest="65" Orientation="Horizontal" BackgroundColor="#E2E2E1" VerticalOptions="End" Spacing="0" Padding="0">
                 <StackLayout x:Name="BotonPedidos" BackgroundColor="#FD8A18" VerticalOptions="FillAndExpand" HorizontalOptions="Start">

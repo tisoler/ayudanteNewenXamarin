@@ -342,7 +342,7 @@ namespace AyudanteNewen.Vistas
 				Orientation = StackOrientation.Horizontal,
 				VerticalOptions = LayoutOptions.Start,
 				BackgroundColor = Color.FromHex("#C0C0C0"),
-				HeightRequest = productos.Count <= 25 ? 35 : 50,
+				HeightRequest = 30,
 				Children =
 					{
 						new Label
@@ -377,7 +377,8 @@ namespace AyudanteNewen.Vistas
 			var vista = new ListView
 			{
 				RowHeight = altoTeja,
-				VerticalOptions = LayoutOptions.Start,
+				// Se agrega un alto de 100 para que el fill de la lista no tape la botonera de abajo (ver).
+				HeightRequest = 100,
 				HorizontalOptions = LayoutOptions.Fill,
 				ItemsSource = listaProductos,
 				ItemTemplate = new DataTemplate(() =>

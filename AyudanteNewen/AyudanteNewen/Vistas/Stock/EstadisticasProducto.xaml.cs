@@ -37,7 +37,14 @@ namespace AyudanteNewen.Vistas
 			SombraEncabezado.Source = ImageSource.FromResource(App.RutaImagenSombraEncabezado);
 
 			if (_productoString.Length > 1)
+			{
 				Titulo.Text += " " + _productoString[1];
+				Titulo.FontSize = Titulo.Text?.Length < 38
+					? 18
+					: Titulo.Text?.Length < 45
+						? 16
+						: 15;
+			}
 
 			_indicadorActividad = new ActivityIndicator
 			{
