@@ -87,7 +87,7 @@ namespace AyudanteNewen.Vistas
 				IsBusy = false; //Remueve el Indicador de Actividad.
 			}
 
-			_nombresColumnas = CuentaUsuario.ObtenerColumnasProductos()?.Split(',');
+			_nombresColumnas = new string[_celdas.ColCount.Count];
 
 			var productos = new List<string[]>();
 			var producto = new string[_celdas.ColCount.Count];
@@ -104,6 +104,8 @@ namespace AyudanteNewen.Vistas
 					if (celda.Column == _celdas.ColCount.Count)
 						productos.Add(producto);
 				}
+				else
+					_nombresColumnas.SetValue(celda.Value, (int)celda.Column - 1);
 			}
 
 			LlenarGrillaDeProductos(productos);
@@ -372,7 +374,9 @@ namespace AyudanteNewen.Vistas
 					}
 			};
 
-			var altoTeja = (_listaColumnasParaVer?.Where(x => x == "1").Count() ?? 0) * 16;
+			var cantidadColumnasParaVer = _listaColumnasParaVer?.Where(x => x == "1")?.Count() ?? 0;
+			// 1 columna es el nombre del ítem, del lado derecho van las restantes (1 menos)
+			var altoTeja = cantidadColumnasParaVer > 3 ? cantidadColumnasParaVer * 16 : 64;
 
 			var vista = new ListView
 			{
@@ -388,7 +392,8 @@ namespace AyudanteNewen.Vistas
 						FontSize = 16,
 						TextColor = Color.FromHex("#1D1D1B"),
 						FontAttributes = FontAttributes.Bold,
-						VerticalOptions = LayoutOptions.CenterAndExpand,
+						VerticalOptions = LayoutOptions.FillAndExpand,
+						VerticalTextAlignment = TextAlignment.Center,
 						WidthRequest = anchoColumnaNombreProd,
 						Margin = 3
 					};
@@ -398,7 +403,8 @@ namespace AyudanteNewen.Vistas
 					{
 						FontSize = 15,
 						TextColor = Color.FromHex("#1D1D1B"),
-						VerticalOptions = LayoutOptions.CenterAndExpand,
+						VerticalOptions = LayoutOptions.FillAndExpand,
+						VerticalTextAlignment = TextAlignment.Center,
 						WidthRequest = anchoColumnaDatosProd
 					};
 					datos.SetBinding(Label.TextProperty, "Datos");
